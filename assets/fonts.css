@@ -1,0 +1,7 @@
+/* Self-hosted webfonts (Google Fonts, SIL Open Font License 1.1).
+   Bundled so the prototype runs with no network. */
+
+@font-face{font-family:'Petrona';font-style:italic;font-weight:300 500;font-display:swap;src:url('fonts/petrona-italic-300_500.woff2') format('woff2');}
+@font-face{font-family:'Petrona';font-style:normal;font-weight:300 600;font-display:swap;src:url('fonts/petrona-normal-300_600.woff2') format('woff2');}
+@font-face{font-family:'Archivo';font-style:normal;font-weight:400 700;font-display:swap;src:url('fonts/archivo-normal-400_700.woff2') format('woff2');}
+@font-face{font-family:'Spline Sans Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url('fonts/splinemono-normal-400_500.woff2') format('woff2');}
