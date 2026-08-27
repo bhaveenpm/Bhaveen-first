@@ -8,17 +8,25 @@ const overlay = document.getElementById("overlay");
 const toastEl = document.getElementById("toast");
 
 const SESSION_KEY = "halden.session";
-let scope = localStorage.getItem("halden.scope") || "mine";
+
+/* localStorage can throw outright in a private window or a sandboxed frame */
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+
+let scope = store.get("halden.scope") || "mine";
 let lastResolved = null;
 
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 function session() {
-  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+  try { return JSON.parse(store.get(SESSION_KEY)); } catch (e) { return null; }
 }
-session.set = (v) => localStorage.setItem(SESSION_KEY, JSON.stringify(v));
-session.clear = () => localStorage.removeItem(SESSION_KEY);
+session.set = (v) => store.set(SESSION_KEY, JSON.stringify(v));
+session.clear = () => store.del(SESSION_KEY);
 
 /* ---------------- icons ---------------- */
 
@@ -340,7 +348,7 @@ function renderToday() {
   }
 
   root.querySelectorAll("[data-scope]").forEach((b) => {
-    b.onclick = () => { scope = b.dataset.scope; localStorage.setItem("halden.scope", scope); render(); };
+    b.onclick = () => { scope = b.dataset.scope; store.set("halden.scope", scope); render(); };
   });
 
   root.querySelectorAll("[data-do]").forEach((b) => {
@@ -588,7 +596,7 @@ function renderPipeline() {
   root.innerHTML = shell(body, "pipeline");
   wireChrome();
   root.querySelectorAll("[data-scope]").forEach((b) => {
-    b.onclick = () => { scope = b.dataset.scope; localStorage.setItem("halden.scope", scope); render(); };
+    b.onclick = () => { scope = b.dataset.scope; store.set("halden.scope", scope); render(); };
   });
 }
 
