@@ -1,0 +1,39 @@
+{
+  "name": "auto-write",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "eval": "AUTO_WRITE_PROVIDER=${AUTO_WRITE_PROVIDER:-mock} tsx --tsconfig tsconfig.json evals/run.ts",
+    "test:fixtures": "tsx --tsconfig tsconfig.json tests/fixtures.test.ts",
+    "test:unit": "tsx --tsconfig tsconfig.json tests/unit.test.mts",
+    "test": "npm run test:unit && npm run test:fixtures",
+    "gen:samples": "tsx --tsconfig tsconfig.json scripts/gen-samples.ts",
+    "typecheck": "tsc --noEmit",
+    "check:bundle": "bash scripts/check-bundle.sh",
+    "test:e2e": "tsx --tsconfig tsconfig.json tests/screenshot.mts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.3",
+    "playwright": "^1.62.1",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.13",
+    "typescript": "^5",
+    "yaml": "^2.9.0"
+  }
+}

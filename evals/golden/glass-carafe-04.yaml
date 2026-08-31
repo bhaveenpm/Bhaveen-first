@@ -1,0 +1,4 @@
+id: glass-carafe-04
+category: homeware
+visible_attributes: [clear glass, tapered neck, flat base, no printed label]
+unknowable_attributes: [capacity_ml, heat_resistance, glass_type, weight_g]

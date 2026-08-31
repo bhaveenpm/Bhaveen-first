@@ -1,0 +1,4 @@
+id: honey-jar-15
+category: food and beverage
+visible_attributes: [hexagonal glass jar, gold-toned contents, metal lid, paper label]
+unknowable_attributes: [net_weight_g, ingredients, floral_source, best_before]

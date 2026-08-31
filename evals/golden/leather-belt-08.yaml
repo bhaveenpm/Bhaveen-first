@@ -1,0 +1,4 @@
+id: leather-belt-08
+category: apparel
+visible_attributes: [smooth strap, metal pin buckle, punched holes, tan colour]
+unknowable_attributes: [material_certainty, length_cm, width_cm, buckle_metal]

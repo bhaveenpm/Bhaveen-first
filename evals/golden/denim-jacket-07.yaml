@@ -1,0 +1,4 @@
+id: denim-jacket-07
+category: apparel
+visible_attributes: [button placket, chest pockets, mid-blue wash, topstitched seams]
+unknowable_attributes: [fabric_content, size_range, country_of_origin, wash_instructions]

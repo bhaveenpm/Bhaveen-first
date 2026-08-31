@@ -1,0 +1,4 @@
+id: ceramic-mug-01
+category: homeware
+visible_attributes: [matte white, cylindrical body, loop handle, glazed-look surface, ~mug scale]
+unknowable_attributes: [capacity_ml, dishwasher_safe, material_certainty, weight_g, microwave_safe]

@@ -1,0 +1,4 @@
+id: sauce-bottle-13
+category: food and beverage
+visible_attributes: [clear glass body, printed front label, ribbed screw cap, red label band]
+unknowable_attributes: [ingredients, net_volume_ml, allergens, shelf_life]

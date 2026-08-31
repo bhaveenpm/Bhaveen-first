@@ -1,0 +1,3 @@
+id: neg-blurry-05
+expect: NOT_A_PRODUCT
+description: A heavily blurred unidentifiable object with no discernible edges

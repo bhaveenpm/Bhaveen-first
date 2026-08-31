@@ -1,0 +1,4 @@
+id: tea-tin-16
+category: food and beverage
+visible_attributes: [cylindrical tin, press-fit lid, printed wrap label, muted green]
+unknowable_attributes: [net_weight_g, ingredients, caffeine_content, brew_instructions]

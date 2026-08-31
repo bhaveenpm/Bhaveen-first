@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf8;
+  --foreground: #1a1a19;
+  --muted: #6b6a66;
+  --line: #e4e1db;
+  --panel: #ffffff;
+  --accent: #1a1a19;
+  --warn-bg: #fff8e6;
+  --warn-line: #e8d9a8;
+  --warn-fg: #6b5316;
+  --danger-bg: #fdf1ef;
+  --danger-line: #f0cbc4;
+  --danger-fg: #8c3520;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #14140f;
+    --foreground: #ecebe6;
+    --muted: #9b9992;
+    --line: #2e2d28;
+    --panel: #1b1b16;
+    --accent: #ecebe6;
+    --warn-bg: #2a2210;
+    --warn-line: #4d3f1c;
+    --warn-fg: #e8cf90;
+    --danger-bg: #2b1512;
+    --danger-line: #52251d;
+    --danger-fg: #f0b3a4;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-panel: var(--panel);
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Not-yet-filled fields shimmer while the stream is running (§7). */
+@keyframes aw-shimmer {
+  0% { background-position: -320px 0; }
+  100% { background-position: 320px 0; }
+}
+.aw-shimmer {
+  background-image: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--foreground) 8%, transparent) 50%, transparent 100%);
+  background-size: 320px 100%;
+  background-repeat: no-repeat;
+  animation: aw-shimmer 1.15s ease-in-out infinite;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .aw-shimmer { animation: none; }
+}
+
+/* The [SPECIFY: ...] placeholder is the point of the product — make it unmissable. */
+mark.aw-specify {
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  border: 1px solid var(--warn-line);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-weight: 600;
+  font-size: 0.92em;
+}
+
+[contenteditable]:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 2px;
+}
