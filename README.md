@@ -8,6 +8,7 @@ on the nuances that only show up once you've built against it.
 Built to learn the API properly rather than read about it.
 
 ```bash
+npm run ui        # a clickable web UI at http://127.0.0.1:3000 — start here
 npm run doctor    # checks whether you're set up, and says what to fix
 npm run demo      # the whole Pay by Link story, end to end, offline, ~2s
 npm test          # 38 tests, no network needed
@@ -15,6 +16,32 @@ npm test          # 38 tests, no network needed
 
 **No credentials yet?** `npm run demo` and `npm test` work offline, right now.
 When you're ready for the real thing, `npm run doctor` tells you what's missing.
+
+## The UI
+
+```bash
+npm run ui                            # offline emulator, no credentials
+GP_ENVIRONMENT=sandbox npm run ui     # the real sandbox, using your .env
+```
+
+Create links, open the hosted page, pay them, watch the webhook land, charge
+test cards, and see **every HTTP call this server makes to GP** — method, path,
+request body, response, status, timing — in a live wire log you can click open.
+That log is the point: it is the API teardown in `notes/01-api-teardown.md`,
+happening in front of you.
+
+Built in to be discovered by clicking:
+
+- **JPY** — zero-decimal, so `24.99` is rejected before it leaves your machine.
+- **ZZZ** — a well-formed code the account isn't provisioned for. The request is
+  fine; the account isn't.
+- **The declining card vs. the Luhn-failing card** — both HTTP 400, one is the
+  issuer's answer and one is your bug. The UI labels them differently on purpose.
+
+Your `app_key` never reaches the browser: this server holds the credentials and
+does the handshake, which is also the only correct way to build against a
+server-to-server API. Secrets are redacted from the wire log — the auth request
+shows `"secret": "***"`, and card numbers never appear.
 
 ## Why an emulator
 
@@ -39,6 +66,8 @@ src/
   resources/transactions.js  sale / auth / capture / refund / reverse
   cli.js                 the CLI
 mock/server.js           offline emulator, incl. a stand-in hosted payment page
+ui/server.js             local web UI: proxies to GP, streams the wire to the page
+ui/index.html            the page itself, no build step, no framework
 scripts/demo.js          narrated end-to-end walkthrough
 scripts/doctor.js        preflight: what's set up, what's missing, how to fix it
 test/                    38 tests, all against the emulator

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GP API Lab</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#fff; --ink:#101418; --muted:#6b7280; --line:#e4e7eb;
+    --accent:#1a56db; --ok:#047857; --warn:#b45309; --bad:#b91c1c;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0e1116;--panel:#161b22;--ink:#e6edf3;--muted:#8b949e;--line:#262c36;
+      --accent:#4c8dff;--ok:#3fb950;--warn:#d29922;--bad:#f85149;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 20px;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+  h1{font-size:16px;margin:0;font-weight:650}
+  .pill{font:11px/1 var(--mono);padding:5px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+  .pill.live{border-color:var(--warn);color:var(--warn)}
+  .pill.mock{border-color:var(--ok);color:var(--ok)}
+  main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;padding:16px;
+    max-width:1500px;margin:0 auto;align-items:start}
+  @media (max-width:1000px){main{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .card>h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
+    margin:0;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:650}
+  .body{padding:16px}
+  label{display:block;font-size:12px;color:var(--muted);margin:0 0 4px}
+  input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+    background:var(--bg);color:var(--ink);font:14px inherit;font-family:inherit}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .row.three{grid-template-columns:1fr 1fr 1fr}
+  button{padding:9px 14px;border:0;border-radius:7px;background:var(--accent);color:#fff;
+    font:600 14px inherit;font-family:inherit;cursor:pointer}
+  button:hover{filter:brightness(1.08)} button:disabled{opacity:.5;cursor:default}
+  button.ghost{background:transparent;color:var(--accent);border:1px solid var(--line);padding:5px 10px;font-size:12px}
+  .hint{font-size:12px;color:var(--muted);margin:8px 0 0}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--muted);padding:8px 16px;border-bottom:1px solid var(--line);font-weight:600}
+  td{padding:9px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  code,.mono{font-family:var(--mono);font-size:12px}
+  .tag{display:inline-block;font:600 10px/1 var(--mono);padding:4px 7px;border-radius:5px;
+    background:var(--bg);border:1px solid var(--line);color:var(--muted);text-transform:uppercase}
+  .tag.ACTIVE{color:var(--ok);border-color:var(--ok)}
+  .tag.PAID{color:var(--accent);border-color:var(--accent)}
+  .tag.INACTIVE,.tag.EXPIRED,.tag.CLOSED{color:var(--muted)}
+  .tag.CAPTURED{color:var(--ok);border-color:var(--ok)}
+  .tag.DECLINED{color:var(--bad);border-color:var(--bad)}
+  .feed{max-height:460px;overflow:auto}
+  .entry{border-bottom:1px solid var(--line);padding:10px 16px;cursor:pointer}
+  .entry:hover{background:var(--bg)}
+  .entry-head{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:12px}
+  .method{font-weight:700;min-width:44px}
+  .status{margin-left:auto;font-weight:700}
+  .s2{color:var(--ok)} .s4{color:var(--bad)} .s5{color:var(--bad)} .s0{color:var(--muted)}
+  pre{margin:8px 0 0;padding:10px;background:var(--bg);border:1px solid var(--line);
+    border-radius:6px;overflow:auto;max-height:280px;font-family:var(--mono);font-size:11.5px;line-height:1.45}
+  .empty{padding:22px 16px;color:var(--muted);font-size:13px;text-align:center}
+  .banner{margin:0;padding:10px 16px;font-size:13px;border-bottom:1px solid var(--line)}
+  .banner.bad{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
+  .banner.ok{background:color-mix(in srgb,var(--ok) 12%,transparent);color:var(--ok)}
+  .linkout{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:12px}
+  .linkout:hover{text-decoration:underline}
+  .split{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .note{font-size:12px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;margin:12px 0 0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>GP API Lab</h1>
+  <span class="pill" id="envPill">connecting…</span>
+  <span class="pill" id="merchantPill"></span>
+  <span class="pill" id="accountPill"></span>
+</header>
+
+<main>
+  <!-- left column ------------------------------------------------------- -->
+  <div style="display:grid;gap:16px">
+    <section class="card">
+      <h2>Create a payment link</h2>
+      <div class="body">
+        <div class="row three">
+          <div><label for="amount">Amount</label><input id="amount" value="24.99"></div>
+          <div><label for="currency">Currency</label>
+            <select id="currency"><option>GBP</option><option>EUR</option><option>USD</option>
+            <option>CAD</option><option>JPY</option><option>ZZZ</option></select></div>
+          <div><label for="usage">Usage</label>
+            <select id="usage"><option value="SINGLE">SINGLE</option><option value="MULTIPLE">MULTIPLE</option></select></div>
+        </div>
+        <div class="row">
+          <div><label for="reference">Your reference</label><input id="reference" value="IG-DM-2291"></div>
+          <div><label for="name">Name shown to buyer</label><input id="name" value="Hand-poured candle"></div>
+        </div>
+        <div class="split">
+          <button id="createBtn">Create link</button>
+          <button class="ghost" id="refreshBtn">Refresh list</button>
+        </div>
+        <p class="hint" id="createHint">The webhook is wired back to this page, so you'll see the callback arrive.</p>
+        <p class="note">Try <strong>JPY</strong> (zero-decimal — 24.99 is rejected, use 2499) or
+        <strong>ZZZ</strong> (a valid-looking code the account isn't provisioned for).</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Links</h2>
+      <div id="links"><div class="empty">None yet.</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Take a card payment directly</h2>
+      <div class="body">
+        <div class="row three">
+          <div><label for="saleAmount">Amount</label><input id="saleAmount" value="10.00"></div>
+          <div><label for="saleCurrency">Currency</label>
+            <select id="saleCurrency"><option>GBP</option><option>EUR</option><option>USD</option></select></div>
+          <div><label for="card">Test card</label>
+            <select id="card">
+              <option value="4263982640269299">Visa — approves</option>
+              <option value="5425233424241200">Mastercard — approves</option>
+              <option value="4000120000001154">Declines</option>
+              <option value="4263982640269290">Fails Luhn (bad request)</option>
+            </select></div>
+        </div>
+        <button id="saleBtn">Charge card</button>
+        <p class="note">The last two options are both HTTP 400 — one is the issuer saying no,
+        one is your integration being wrong. Watch how they differ in the wire log.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- right column ------------------------------------------------------ -->
+  <div style="display:grid;gap:16px">
+    <section class="card">
+      <h2>Webhooks received</h2>
+      <div class="feed" id="webhooks"><div class="empty">Pay a link and the callback lands here.</div></div>
+    </section>
+
+    <section class="card">
+      <h2>The wire — every call this server made to GP</h2>
+      <div class="feed" id="wire"><div class="empty">Nothing yet.</div></div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let state = { links: [], wire: [], webhooks: [] };
+
+async function api(path, options) {
+  const res = await fetch(path, {
+    method: options?.method || "GET",
+    headers: { "Content-Type": "application/json" },
+    body: options?.body ? JSON.stringify(options.body) : undefined,
+  });
+  return res.json();
+}
+
+function banner(sectionId, kind, text) {
+  const host = $(sectionId);
+  const existing = host.parentElement.querySelector(".banner");
+  if (existing) existing.remove();
+  if (!text) return;
+  const el = document.createElement("p");
+  el.className = `banner ${kind}`;
+  el.innerHTML = text;
+  host.parentElement.insertBefore(el, host);
+  if (kind === "ok") setTimeout(() => el.remove(), 6000);
+}
+
+// --- session ---------------------------------------------------------------
+async function loadSession() {
+  const s = await api("/api/session");
+  if (!s.ok) {
+    $("envPill").textContent = "not connected";
+    $("envPill").className = "pill live";
+    banner("links", "bad", `Could not authenticate: ${esc(s.message || "")}`);
+    return;
+  }
+  $("envPill").textContent = s.environment;
+  $("envPill").className = "pill " + (s.environment === "mock" ? "mock" : "live");
+  $("merchantPill").textContent = s.scope?.merchant_name || "";
+  $("accountPill").textContent = s.accountName || "";
+  state.wire = s.wire || [];
+  state.webhooks = s.webhooks || [];
+  renderWire(); renderWebhooks();
+  loadLinks();
+}
+
+// --- links -----------------------------------------------------------------
+async function loadLinks() {
+  const r = await api("/api/links");
+  if (!r.ok) return;
+  state.links = r.page?.links || [];
+  renderLinks();
+}
+
+function money(minor, currency) {
+  const zero = ["JPY","KRW","VND","CLP","ISK"].includes(currency);
+  const n = Number(minor);
+  return (zero ? n : n / 100).toFixed(zero ? 0 : 2) + " " + currency;
+}
+
+function renderLinks() {
+  const host = $("links");
+  if (!state.links.length) { host.innerHTML = '<div class="empty">None yet.</div>'; return; }
+  host.innerHTML = `<table><thead><tr>
+      <th>Reference</th><th>Amount</th><th>Status</th><th>Used</th><th></th>
+    </tr></thead><tbody>` + state.links.map(l => `
+      <tr>
+        <td><code>${esc(l.reference)}</code><br><span class="mono" style="color:var(--muted)">${esc(l.id)}</span></td>
+        <td class="mono">${esc(money(l.transactions.amount, l.transactions.currency))}</td>
+        <td><span class="tag ${esc(l.status)}">${esc(l.status)}</span></td>
+        <td class="mono">${esc(l.usage_count)}/${esc(l.usage_limit)}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <a class="linkout" href="${esc(l.url)}" target="_blank" rel="noopener">open&nbsp;↗</a>
+          ${l.status === "ACTIVE" ? `<button class="ghost" data-off="${esc(l.id)}">deactivate</button>` : ""}
+        </td>
+      </tr>`).join("") + `</tbody></table>`;
+
+  host.querySelectorAll("[data-off]").forEach(btn => {
+    btn.onclick = async () => {
+      btn.disabled = true;
+      await api(`/api/links/${btn.dataset.off}/deactivate`, { method: "POST" });
+      loadLinks();
+    };
+  });
+}
+
+$("createBtn").onclick = async () => {
+  const btn = $("createBtn"); btn.disabled = true;
+  const r = await api("/api/links", { method: "POST", body: {
+    amount: $("amount").value, currency: $("currency").value,
+    reference: $("reference").value, name: $("name").value,
+    usageMode: $("usage").value,
+    usageLimit: $("usage").value === "MULTIPLE" ? 3 : 1,
+  }});
+  btn.disabled = false;
+  if (r.ok) {
+    banner("links", "ok", `Created <code>${esc(r.link.id)}</code> — open it to pay.`);
+    $("reference").value = "IG-DM-" + Math.floor(1000 + Math.random() * 9000);
+    loadLinks();
+  } else {
+    banner("links", "bad", `<strong>${esc(r.errorCode || r.kind)}</strong> ${esc(r.message)}`);
+  }
+};
+
+$("refreshBtn").onclick = loadLinks;
+
+// --- direct sale -----------------------------------------------------------
+$("saleBtn").onclick = async () => {
+  const btn = $("saleBtn"); btn.disabled = true;
+  const r = await api("/api/sale", { method: "POST", body: {
+    amount: $("saleAmount").value, currency: $("saleCurrency").value,
+    card: $("card").value, exp: "12/2027", cvv: "123",
+    reference: "SALE-" + Date.now(),
+  }});
+  btn.disabled = false;
+  if (r.ok) {
+    banner("wire", "ok", `<code>${esc(r.transaction.id)}</code> ${esc(r.transaction.status)} — ${esc(r.transaction.payment_method?.message || "")}`);
+  } else if (r.kind === "declined") {
+    banner("wire", "bad", `<strong>DECLINED</strong> ${esc(r.message)} — the issuer's answer, not a bug. retryable: ${r.retryable}`);
+  } else {
+    banner("wire", "bad", `<strong>${esc(r.errorCode || r.kind)}</strong> ${esc(r.message)} — your request was wrong. retryable: ${r.retryable}`);
+  }
+};
+
+// --- feeds -----------------------------------------------------------------
+function renderWire() {
+  const host = $("wire");
+  if (!state.wire.length) { host.innerHTML = '<div class="empty">Nothing yet.</div>'; return; }
+  host.innerHTML = state.wire.slice().reverse().map(w => {
+    const cls = "s" + String(w.status)[0];
+    return `<div class="entry" data-seq="${w.seq}">
+      <div class="entry-head">
+        <span class="method">${esc(w.method)}</span>
+        <span>${esc(w.path)}</span>
+        <span class="status ${cls}">${w.status || "ERR"}</span>
+        <span style="color:var(--muted)">${w.ms}ms</span>
+      </div>
+      <div class="detail" hidden></div>
+    </div>`;
+  }).join("");
+  host.querySelectorAll(".entry").forEach(el => {
+    el.onclick = () => {
+      const d = el.querySelector(".detail");
+      if (!d.hidden) { d.hidden = true; return; }
+      const w = state.wire.find(x => String(x.seq) === el.dataset.seq);
+      d.innerHTML =
+        (w.request ? `<pre>→ ${esc(JSON.stringify(w.request, null, 2))}</pre>` : "") +
+        `<pre>← ${esc(JSON.stringify(w.response, null, 2))}</pre>`;
+      d.hidden = false;
+    };
+  });
+}
+
+function renderWebhooks() {
+  const host = $("webhooks");
+  if (!state.webhooks.length) {
+    host.innerHTML = '<div class="empty">Pay a link and the callback lands here.</div>'; return;
+  }
+  host.innerHTML = state.webhooks.map(w => `
+    <div class="entry">
+      <div class="entry-head">
+        <span class="method">POST</span><span>/webhook</span>
+        <span class="status s2">${esc(w.body?.status || "")}</span>
+        <span style="color:var(--muted)">${esc(w.at.slice(11, 19))}</span>
+      </div>
+      <pre>${esc(JSON.stringify(w.body, null, 2))}</pre>
+    </div>`).join("");
+}
+
+// --- live stream -----------------------------------------------------------
+const stream = new EventSource("/events");
+stream.onmessage = (e) => {
+  const { type, data } = JSON.parse(e.data);
+  if (type === "wire") { state.wire.push(data); if (state.wire.length > 200) state.wire.shift(); renderWire(); }
+  if (type === "webhook") { state.webhooks.unshift(data); renderWebhooks(); loadLinks(); }
+};
+
+loadSession();
+</script>
+</body>
+</html>

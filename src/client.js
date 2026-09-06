@@ -41,6 +41,9 @@ export class GpClient {
     this.maxRetries = overrides.maxRetries ?? 2;
     this.fetchImpl = overrides.fetchImpl ?? globalThis.fetch;
     this.timeoutMs = overrides.timeoutMs ?? 20_000;
+    // Called with a redacted record of every request/response pair. The UI
+    // uses it to show the wire, which is the whole point of the exercise.
+    this.onWire = overrides.onWire ?? null;
   }
 
   get config() {
@@ -143,6 +146,15 @@ export class GpClient {
     throw lastError;
   }
 
+  #emitWire(record) {
+    if (!this.onWire) return;
+    try {
+      this.onWire(record);
+    } catch {
+      // A broken observer must never break a payment call.
+    }
+  }
+
   async #send(method, path, { body, query, idempotencyKey, authenticated = true } = {}) {
     const url = new URL(this.#config.baseUrl + path);
     for (const [key, value] of Object.entries(query ?? {})) {
@@ -177,6 +189,7 @@ export class GpClient {
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const startedAt = Date.now();
 
     let response;
     try {
@@ -189,6 +202,11 @@ export class GpClient {
     } catch (error) {
       clearTimeout(timer);
       error.isNetworkError = true;
+      this.#emitWire({
+        method, path: url.pathname + url.search, status: 0,
+        request: payload ? JSON.parse(redactBody(payload)) : undefined,
+        response: { error: error.message }, ms: Date.now() - startedAt,
+      });
       throw error;
     }
     clearTimeout(timer);
@@ -204,6 +222,15 @@ export class GpClient {
     if (this.debug) {
       console.error(`< ${response.status} ${redactBody(JSON.stringify(parsed))}`);
     }
+
+    this.#emitWire({
+      method,
+      path: url.pathname + url.search,
+      status: response.status,
+      request: payload ? JSON.parse(redactBody(payload)) : undefined,
+      response: JSON.parse(redactBody(JSON.stringify(parsed))),
+      ms: Date.now() - startedAt,
+    });
 
     if (!response.ok) {
       const error = new GpApiError({
