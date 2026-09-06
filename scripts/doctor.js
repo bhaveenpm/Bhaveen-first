@@ -101,8 +101,13 @@ if (failures === 0) {
             ? "Start the emulator first: npm run mock"
             : "Check your internet connection, VPN, or corporate proxy");
     } else if (error.status === 400 || error.status === 401) {
+      const otherRegion = environment.endsWith("-eu")
+        ? environment.replace("-eu", "")
+        : `${environment}-eu`;
       bad(`The API rejected the credentials (${error.status} ${error.errorCode ?? ""})`,
-          "Check the App ID and App Key are from the SANDBOX tab, not production");
+          `Two usual causes: (a) the keys are production, not sandbox; ` +
+          `(b) wrong REGION -- an Ireland/Europe app needs the EU host. ` +
+          `Try: npm run doctor -- --env ${otherRegion}`);
     } else {
       bad(`Unexpected: ${error.message}`);
     }

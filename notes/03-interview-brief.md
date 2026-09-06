@@ -67,6 +67,14 @@ Good questions here are ones where you've clearly already formed a view.
    The question an API PM lives on. Have your hypothesis ready: the auth
    handshake, and the first `MANDATORY_DATA_MISSING` on a create call.
 
+   You now have first-hand evidence for this one: creating a Unified Payments
+   App in the portal returned `Internal Server Error`. **Use it carefully.**
+   Delivered as *"I hit a 500 trying to generate credentials, which made me
+   wonder how you measure the top of that funnel"* it's an observation with a
+   question attached. Delivered as *"your portal is broken"* it's a complaint,
+   and the person across the table may well have built it. Lead with the metric,
+   mention the 500 as the reason you thought about it.
+
 3. **How do you think about the Truust relationship?** This is now evidenced,
    not speculative: the Social Commerce onboarding mail arrives from
    **`globalpayments@truust.io`** and issues `truust_platform_<uuid>`

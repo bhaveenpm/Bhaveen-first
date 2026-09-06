@@ -69,7 +69,30 @@ loud enough that integrators feel wrong omitting it.
 direct incident-rate consequences. "Which of our merchants have ever sent an
 idempotency key" is a question worth being able to answer.
 
-**5. GP invests in samples over abstraction.**
+**5. The credential-issuing funnel fails, and it fails at the worst point.**
+Creating a Unified Payments App in the developer portal returned
+`Internal Server Error` on submit — a 500, not a validation message. The form
+had been filled correctly; nothing the developer could change would fix it.
+
+*So what:* everything else in this document is downstream of getting an
+`app_id`. This is step one of the funnel, it's the step with no workaround, and
+a 500 gives the developer nothing to act on — no error id to quote to support,
+no indication whether to retry or wait. Compare with the competitor benchmark:
+Stripe issues a working test key on the signup screen, before any form.
+
+Two design details make it worse. The region selector on that same form is
+**irreversible** ("Once selected, you cannot change this region") and determines
+which API host the resulting credentials work against — and a region mismatch
+later surfaces as *rejected credentials*, not as a wrong host. So an
+irreversible, consequential choice is made on the form that is 500ing, with the
+consequence deferred and mislabelled.
+
+*If I owned this:* time-to-first-successful-call is the metric, and the funnel
+step that gates it has no instrumentation a PM would see. I'd want the 500 rate
+on app creation on a dashboard, and I'd want to know how many accounts have an
+`app_id` but have never successfully minted a token.
+
+**6. GP invests in samples over abstraction.**
 `globalpayments-samples/pay-by-link` implements the same ~200-line flow six
 times. That's a deliberate strategy: meet developers in their language rather
 than teach a framework.
