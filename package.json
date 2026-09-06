@@ -1,0 +1,15 @@
+{
+  "name": "gp-api-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A hands-on lab for the Global Payments GP API (Unified Commerce Platform): a zero-dependency client, a CLI, and an offline mock of the API.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "gp": "node src/cli.js",
+    "mock": "node mock/server.js",
+    "test": "node --test \"test/*.test.js\"",
+    "demo": "node scripts/demo.js"
+  },
+  "license": "MIT"
+}
