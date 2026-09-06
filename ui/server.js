@@ -17,7 +17,8 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { createGp, GpApiError, formatAmount } from "../src/index.js";
+import { readFileSync, writeFileSync } from "node:fs";
+import { createGp, GpApiError, formatAmount, CHANNELS } from "../src/index.js";
 import { server as mockApi } from "../mock/server.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -50,10 +51,31 @@ if (ENVIRONMENT === "mock") {
   mockPort = mockApi.address().port;
 }
 
+/**
+ * Fulfilment state lives here because GP has nowhere to put it. A JSON file is
+ * enough to make the point and survives a restart; in a real system this is
+ * your own database.
+ */
+const STORE_PATH = join(HERE, "..", ".orders.json");
+function fileStore() {
+  let data = {};
+  try { data = JSON.parse(readFileSync(STORE_PATH, "utf8")); } catch { data = {}; }
+  const flush = () => {
+    try { writeFileSync(STORE_PATH, JSON.stringify(data, null, 2)); } catch { /* best effort */ }
+  };
+  return {
+    get: (ref) => data[ref],
+    set: (ref, value) => { data[ref] = value; flush(); },
+    all: () => ({ ...data }),
+  };
+}
+
 const gp = createGp({
   environment: ENVIRONMENT,
   ...(mockPort ? { baseUrl: `http://127.0.0.1:${mockPort}/ucp` } : {}),
   onWire: recordWire,
+  orderStore: fileStore(),
+  webhooks: () => webhooks,
 });
 
 const json = (res, status, body) => {
@@ -124,6 +146,7 @@ const server = createServer(async (req, res) => {
         await gp.client.accessToken();
         return json(res, 200, {
           ok: true,
+          channels: CHANNELS,
           environment: ENVIRONMENT,
           baseUrl: gp.client.config.baseUrl,
           scope: gp.client.scope,
@@ -131,6 +154,41 @@ const server = createServer(async (req, res) => {
           wire,
           webhooks,
         });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    }
+
+    // --- orders (the layer GP does not have) ---------------------------------
+    if (path === "/api/orders" && req.method === "GET") {
+      try {
+        return json(res, 200, { ok: true, orders: await gp.orders.list() });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    }
+
+    if (path === "/api/orders" && req.method === "POST") {
+      const input = await readJson(req);
+      try {
+        const order = await gp.orders.create({
+          ...input,
+          statusUrl: `http://127.0.0.1:${PORT}/webhook`,
+        });
+        return json(res, 200, { ok: true, order });
+      } catch (error) {
+        return sendError(res, error);
+      }
+    }
+
+    const ship = /^\/api\/orders\/([^/]+)\/(ship|unship)$/.exec(path);
+    if (ship && req.method === "POST") {
+      const reference = decodeURIComponent(ship[1]);
+      try {
+        const order = ship[2] === "ship"
+          ? await gp.orders.markShipped(reference)
+          : await gp.orders.markUnshipped(reference);
+        return json(res, 200, { ok: true, order });
       } catch (error) {
         return sendError(res, error);
       }

@@ -132,10 +132,30 @@ Ordered by what I'd actually argue for, with the honest objection to each.
 
 **1. An idempotency-and-reconciliation layer as a first-class API concept.**
 Make `reference` mandatory and structured, and expose "show me every link,
-transaction, refund and webhook for reference X" as one call. Today that's three
-paged searches and a join the integrator writes themselves.
+transaction, refund and webhook for reference X" as one call. Today that's
+several paged searches and a join the integrator writes themselves.
 *Objection:* mandatory fields break existing integrations; would need to be
 opt-in per account and default-on for new ones.
+
+**Built, in `src/resources/orders.js` and the Orders panel of `npm run ui`.**
+It does three things the API doesn't:
+
+- A **structured reference** (`IG-2291`) instead of free text, validated at
+  encode time. "order 12", "Order#12" and "12" are one order to a human and
+  three to a machine; there's a test asserting none of them parse.
+- **One call for everything about an order** — link, transactions, webhooks,
+  joined. The wire log shows what that costs today: two paged searches and an
+  in-memory join, per refresh.
+- **Fulfilment state**, which GP has nowhere to put — and therefore the
+  **exception states** that only exist once something holds both halves:
+  `PAID_NOT_SHIPPED` (buyer waiting, seller hasn't noticed),
+  `SHIPPED_NOT_PAID` (goods gone, no money), `REFUNDED_AFTER_SHIPPING`
+  (neither), `STALE_LINK`.
+
+That last group is the whole argument. Those states are invisible today not
+because they're rare but because **nothing owns both halves** — payment sits at
+GP, fulfilment sits in the seller's head, and no system holds them together
+long enough to notice the contradiction. Ten tests cover the transitions.
 
 **2. Close the Node/Pay-by-Link SDK gap, and make the sandbox playground the
 front door.** Least glamorous, highest certainty. The thing standing between a

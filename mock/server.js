@@ -275,8 +275,10 @@ route("GET", /^\/ucp\/links$/, async (req, res, _m, _b, url) => {
   const pageSize = Number(url.searchParams.get("page_size") || 20);
   const status = url.searchParams.get("status");
 
+  const reference = url.searchParams.get("reference");
   let all = [...state.links.values()].sort((a, b) => b.time_created.localeCompare(a.time_created));
   if (status) all = all.filter((l) => l.status === status);
+  if (reference) all = all.filter((l) => l.reference === reference);
 
   const start = (page - 1) * pageSize;
   send(res, 200, {
@@ -342,6 +344,28 @@ route("POST", /^\/ucp\/transactions$/, async (req, res, _m, body) => {
     });
   }
   send(res, 200, transaction);
+});
+
+route("GET", /^\/ucp\/transactions$/, async (req, res, _m, _b, url) => {
+  if (!requireAuth(req, res)) return;
+  const page = Number(url.searchParams.get("page") || 1);
+  const pageSize = Number(url.searchParams.get("page_size") || 20);
+  const reference = url.searchParams.get("reference");
+  const status = url.searchParams.get("status");
+
+  let all = [...state.transactions.values()]
+    .sort((a, b) => b.time_created.localeCompare(a.time_created));
+  if (reference) all = all.filter((t) => t.reference === reference);
+  if (status) all = all.filter((t) => t.status === status);
+
+  const start = (page - 1) * pageSize;
+  send(res, 200, {
+    total_record_count: String(all.length),
+    page_size: String(pageSize),
+    page: String(page),
+    order: "DESC",
+    transactions: all.slice(start, start + pageSize),
+  });
 });
 
 route("GET", /^\/ucp\/transactions\/([^/]+)$/, async (req, res, m) => {

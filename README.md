@@ -30,6 +30,15 @@ request body, response, status, timing — in a live wire log you can click open
 That log is the point: it is the API teardown in `notes/01-api-teardown.md`,
 happening in front of you.
 
+**The Orders panel** is the argument from `notes/02-product-teardown.md`, built.
+GP models money moving; a seller's job runs from "agree price" to "shipped", and
+the API stops in the middle. So orders here carry a structured reference
+(`IG-2291`, not free text), join their link and transactions and webhooks into
+one view, and hold the fulfilment state GP has nowhere to put. That's what makes
+the exception states visible: **paid but not shipped**, **shipped but not
+paid**, **refunded after shipping**. Invisible today because nothing owns both
+halves.
+
 Built in to be discovered by clicking:
 
 - **JPY** — zero-decimal, so `24.99` is rejected before it leaves your machine.
@@ -63,6 +72,8 @@ src/
   money.js               minor units -- the conversion the API cannot validate for you
   errors.js              GpApiError: separates a decline from a broken request
   resources/links.js     Pay by Link
+  resources/orders.js    the order layer GP doesn't have: structured references,
+                         one joined view, fulfilment state, exception states
   resources/transactions.js  sale / auth / capture / refund / reverse
   cli.js                 the CLI
 mock/server.js           offline emulator, incl. a stand-in hosted payment page

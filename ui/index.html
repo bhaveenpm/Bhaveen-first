@@ -71,6 +71,16 @@
   .linkout:hover{text-decoration:underline}
   .split{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .note{font-size:12px;color:var(--muted);border-left:2px solid var(--line);padding-left:10px;margin:12px 0 0}
+  .exc{display:inline-block;font:700 10px/1 var(--mono);padding:4px 7px;border-radius:5px;
+    background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);border:1px solid var(--bad)}
+  .exc.warn{background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--warn);border-color:var(--warn)}
+  .chan{display:inline-block;font:600 10px/1 var(--mono);padding:4px 7px;border-radius:5px;
+    background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+  .unstructured{color:var(--warn);font-style:italic}
+  .count{font:600 11px/1 var(--mono);padding:3px 7px;border-radius:99px;
+    background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);margin-left:8px}
+  .h2row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .h2row h2{border:0;padding:0;margin:0}
 </style>
 </head>
 <body>
@@ -85,6 +95,41 @@
 <main>
   <!-- left column ------------------------------------------------------- -->
   <div style="display:grid;gap:16px">
+    <section class="card">
+      <h2>New order</h2>
+      <div class="body">
+        <div class="row three">
+          <div><label for="oChannel">Channel</label><select id="oChannel"></select></div>
+          <div><label for="oAmount">Amount</label><input id="oAmount" value="24.99"></div>
+          <div><label for="oCurrency">Currency</label>
+            <select id="oCurrency"><option>GBP</option><option>EUR</option><option>USD</option>
+            <option>CAD</option><option>JPY</option></select></div>
+        </div>
+        <div class="row">
+          <div><label for="oName">What was sold</label><input id="oName" value="Hand-poured candle"></div>
+          <div><label for="oId">Order number</label><input id="oId" value="2291"></div>
+        </div>
+        <button id="orderBtn">Create order &amp; payment link</button>
+        <p class="note">The reference is <strong>structured</strong> (<code>IG-2291</code>), not free text —
+        so the link, its transactions and the webhook can be joined back to this order
+        automatically. Today that field is optional and unvalidated.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="h2row">
+        <h2>Orders <span id="attnCount"></span></h2>
+        <button class="ghost" id="ordersRefresh">Refresh</button>
+      </div>
+      <div id="orders"><div class="empty">No orders yet.</div></div>
+      <p class="note" style="margin:0;padding:12px 16px;border-top:1px solid var(--line);border-left:0">
+        <strong>Payment</strong> comes from GP. <strong>Fulfilment</strong> does not exist in the API —
+        it is held here. Holding both is the only way the exception states above become visible.
+        <br><br>Now watch the wire log: every refresh of this table costs a paged link search
+        <em>plus</em> a paged transaction search, joined in memory. Every integrator writes that
+        join themselves. That is the case for making it one call.</p>
+    </section>
+
     <section class="card">
       <h2>Create a payment link</h2>
       <div class="body">
@@ -155,7 +200,7 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-let state = { links: [], wire: [], webhooks: [] };
+let state = { links: [], orders: [], wire: [], webhooks: [] };
 
 async function api(path, options) {
   const res = await fetch(path, {
@@ -191,10 +236,12 @@ async function loadSession() {
   $("envPill").className = "pill " + (s.environment === "mock" ? "mock" : "live");
   $("merchantPill").textContent = s.scope?.merchant_name || "";
   $("accountPill").textContent = s.accountName || "";
+  $("oChannel").innerHTML = Object.entries(s.channels || { IG: "Instagram" })
+    .map(([code, label]) => `<option value="${esc(code)}">${esc(label)}</option>`).join("");
   state.wire = s.wire || [];
   state.webhooks = s.webhooks || [];
   renderWire(); renderWebhooks();
-  loadLinks();
+  loadLinks(); loadOrders();
 }
 
 // --- links -----------------------------------------------------------------
@@ -275,6 +322,85 @@ $("saleBtn").onclick = async () => {
   }
 };
 
+// --- orders ----------------------------------------------------------------
+const EXC_LABEL = {
+  PAID_NOT_SHIPPED:        ["Paid, not shipped", "warn"],
+  SHIPPED_NOT_PAID:        ["Shipped, not paid", ""],
+  REFUNDED_AFTER_SHIPPING: ["Refunded after shipping", ""],
+  STALE_LINK:              ["Link going stale", "warn"],
+};
+
+async function loadOrders() {
+  const r = await api("/api/orders");
+  if (!r.ok) return;
+  state.orders = r.orders || [];
+  renderOrders();
+}
+
+function renderOrders() {
+  const host = $("orders");
+  const attn = state.orders.filter(o => o.exceptions.length);
+  $("attnCount").innerHTML = attn.length ? `<span class="count">${attn.length} need attention</span>` : "";
+
+  if (!state.orders.length) { host.innerHTML = '<div class="empty">No orders yet.</div>'; return; }
+
+  const sorted = state.orders.slice().sort((a, b) => b.exceptions.length - a.exceptions.length);
+
+  host.innerHTML = `<table><thead><tr>
+      <th>Order</th><th>Amount</th><th>Payment</th><th>Fulfilment</th><th></th>
+    </tr></thead><tbody>` + sorted.map(o => {
+      const exc = o.exceptions.map(e => {
+        const [label, cls] = EXC_LABEL[e] || [e, ""];
+        return `<span class="exc ${cls}">${esc(label)}</span>`;
+      }).join(" ");
+      return `<tr>
+        <td>
+          ${o.structured
+            ? `<span class="chan">${esc(o.channelName || o.channel)}</span> <code>${esc(o.reference)}</code>`
+            : `<span class="unstructured">unstructured</span> <code>${esc(o.reference)}</code>`}
+          <br><span style="color:var(--muted)">${esc(o.name || "")}</span>
+          ${exc ? `<br>${exc}` : ""}
+        </td>
+        <td class="mono">${o.amount ? esc(money(o.amount, o.currency)) : "—"}</td>
+        <td><span class="tag ${esc(o.payment)}">${esc(o.payment.replace("_", " "))}</span></td>
+        <td><span class="tag">${esc(o.fulfilment)}</span></td>
+        <td style="text-align:right;white-space:nowrap">
+          ${o.link?.url && o.payment === "AWAITING_PAYMENT"
+            ? `<a class="linkout" href="${esc(o.link.url)}" target="_blank" rel="noopener">pay&nbsp;↗</a> ` : ""}
+          <button class="ghost" data-ship="${esc(o.reference)}" data-to="${o.fulfilment === "SHIPPED" ? "unship" : "ship"}">
+            ${o.fulfilment === "SHIPPED" ? "undo ship" : "mark shipped"}
+          </button>
+        </td>
+      </tr>`;
+    }).join("") + `</tbody></table>`;
+
+  host.querySelectorAll("[data-ship]").forEach(btn => {
+    btn.onclick = async () => {
+      btn.disabled = true;
+      await api(`/api/orders/${encodeURIComponent(btn.dataset.ship)}/${btn.dataset.to}`, { method: "POST" });
+      loadOrders();
+    };
+  });
+}
+
+$("orderBtn").onclick = async () => {
+  const btn = $("orderBtn"); btn.disabled = true;
+  const r = await api("/api/orders", { method: "POST", body: {
+    channel: $("oChannel").value, orderId: $("oId").value,
+    amount: $("oAmount").value, currency: $("oCurrency").value, name: $("oName").value,
+  }});
+  btn.disabled = false;
+  if (r.ok) {
+    banner("orders", "ok", `Order <code>${esc(r.order.reference)}</code> created — open the pay link to complete it.`);
+    $("oId").value = String(Math.floor(1000 + Math.random() * 9000));
+    loadOrders(); loadLinks();
+  } else {
+    banner("orders", "bad", `<strong>${esc(r.errorCode || r.kind)}</strong> ${esc(r.message)}`);
+  }
+};
+
+$("ordersRefresh").onclick = loadOrders;
+
 // --- feeds -----------------------------------------------------------------
 function renderWire() {
   const host = $("wire");
@@ -325,7 +451,7 @@ const stream = new EventSource("/events");
 stream.onmessage = (e) => {
   const { type, data } = JSON.parse(e.data);
   if (type === "wire") { state.wire.push(data); if (state.wire.length > 200) state.wire.shift(); renderWire(); }
-  if (type === "webhook") { state.webhooks.unshift(data); renderWebhooks(); loadLinks(); }
+  if (type === "webhook") { state.webhooks.unshift(data); renderWebhooks(); loadLinks(); loadOrders(); }
 };
 
 loadSession();
