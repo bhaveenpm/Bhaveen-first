@@ -9,7 +9,8 @@
     "gp": "node src/cli.js",
     "mock": "node mock/server.js",
     "test": "node --test \"test/*.test.js\"",
-    "demo": "node scripts/demo.js"
+    "demo": "node scripts/demo.js",
+    "doctor": "node scripts/doctor.js"
   },
   "license": "MIT"
 }

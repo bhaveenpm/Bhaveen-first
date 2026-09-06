@@ -8,9 +8,13 @@ on the nuances that only show up once you've built against it.
 Built to learn the API properly rather than read about it.
 
 ```bash
+npm run doctor    # checks whether you're set up, and says what to fix
 npm run demo      # the whole Pay by Link story, end to end, offline, ~2s
 npm test          # 38 tests, no network needed
 ```
+
+**No credentials yet?** `npm run demo` and `npm test` work offline, right now.
+When you're ready for the real thing, `npm run doctor` tells you what's missing.
 
 ## Why an emulator
 
@@ -36,6 +40,7 @@ src/
   cli.js                 the CLI
 mock/server.js           offline emulator, incl. a stand-in hosted payment page
 scripts/demo.js          narrated end-to-end walkthrough
+scripts/doctor.js        preflight: what's set up, what's missing, how to fix it
 test/                    38 tests, all against the emulator
 notes/                   what I actually learned -- start here
 ```
@@ -65,6 +70,7 @@ Against the real sandbox — get `app_id` / `app_key` from
 
 ```bash
 cp .env.example .env               # fill in GP_APP_ID and GP_APP_KEY
+npm run doctor                     # confirms credentials, network and auth
 npm run gp -- whoami --debug       # proves auth and prints your accounts
 npm run gp -- link:create --debug --amount 1.00 --currency GBP --reference VERIFY-1
 ```
