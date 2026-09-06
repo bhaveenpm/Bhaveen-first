@@ -60,14 +60,43 @@ implements, but check them against the real sandbox before you assert them.
 
 ## Grade D -- could not verify at all
 
-- **The Truust connection.** Your welcome email issued
-  `truust_platform_<uuid>` business references, which strongly suggests Global
-  Payments Social Commerce is built on Truust. I could not confirm any GP/Truust
-  relationship: `api.truust.io` and `truust.io` are blocked here, and a web
-  search surfaced the two companies only as separate entities. **Treat "GP
-  Social Commerce runs on Truust" as an inference to ask about, not a fact to
-  state.** It is a genuinely good question to ask (see `03-interview-brief.md`).
 - Anything about pricing, roadmap, volumes, or the internal org.
+- Whether the Social Commerce app's own API (as opposed to the GP API) is
+  reachable to a self-serve signup. All `truust.io` hosts are blocked here.
+
+---
+
+# Update: the Truust question is now answered
+
+A second onboarding email (17 Sep 2026, "Global Payments API - PRE") resolves
+what was previously the biggest unknown.
+
+**Evidence, from the message headers and body:**
+
+- The sender is **`globalpayments@truust.io`**. Global Payments' Social Commerce
+  onboarding mail is sent from Truust's domain.
+- The account identifiers issued are `truust_platform_<uuid>`.
+- The subject line is "Global Payments API - **PRE**" -- almost certainly a
+  pre-production environment, i.e. this signup carries an API context, not only
+  the consumer app.
+
+**What that supports:** Truust operates the platform behind Global Payments
+Social Commerce. In Truust's model a "platform" looks like the tenant container,
+and the merchant is issued a platform reference per signup.
+
+**What it still does not tell us:** the nature of the relationship -- acquisition,
+white-label, reseller, joint product. Do not guess at corporate structure. The
+question in `03-interview-brief.md` is now much sharper because you can cite the
+sender domain rather than an inference from an identifier format.
+
+**A second observation worth more than the first.** The two emails issued
+*accumulating* platform references -- two in the first, three in the second, the
+earlier ones repeated verbatim. So each signup mints a new platform and none are
+deduplicated, and the merchant is shown all of them with no explanation of what
+a "business name for reference" is or which one to use. That is a first-hand
+onboarding defect you experienced as a user, which is a considerably better
+interview artefact than anything you could read in the docs. See
+`05-social-commerce-teardown.md`.
 
 ## To close the gaps in ~15 minutes
 

@@ -67,12 +67,19 @@ Good questions here are ones where you've clearly already formed a view.
    The question an API PM lives on. Have your hypothesis ready: the auth
    handshake, and the first `MANDATORY_DATA_MISSING` on a create call.
 
-3. **Is Social Commerce built on Truust?** My welcome email issued
-   `truust_platform_<uuid>` references. Ask it as a question — *"I noticed the
-   business references were `truust_platform_...`, is that a build-vs-buy thing?"*
-   — never as a statement. **I could not verify any GP/Truust relationship.**
-   It opens a genuinely interesting build/buy/partner conversation and shows you
-   read your own onboarding email closely.
+3. **How do you think about the Truust relationship?** This is now evidenced,
+   not speculative: the Social Commerce onboarding mail arrives from
+   **`globalpayments@truust.io`** and issues `truust_platform_<uuid>`
+   identifiers. So you can ask it directly — *"I signed up for Social Commerce
+   and the onboarding comes from truust.io with platform references — how do you
+   think about build vs. buy vs. partner for the self-serve end of the
+   portfolio?"* That is a strategy question with evidence behind it, and it
+   shows you actually used the product.
+   **Still don't assert the corporate structure** (acquisition? white-label?
+   reseller?) — you don't know it, and guessing wrong in the room is expensive.
+
+   The follow-on, if it lands well: *"where does the GP API stop and the Truust
+   platform start?"* That's the seam an API proposition role would own.
 
 4. **How do you think about idempotency being opt-in?** It's a real design trade,
    not a gotcha. Ask what share of live traffic sends the header — if they don't
