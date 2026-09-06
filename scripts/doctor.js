@@ -108,8 +108,12 @@ if (failures === 0) {
           `Two usual causes: (a) the keys are production, not sandbox; ` +
           `(b) wrong REGION -- an Ireland/Europe app needs the EU host. ` +
           `Try: npm run doctor -- --env ${otherRegion}`);
+    } else if (error.status === 403 && !error.errorCode) {
+      bad("Blocked before reaching the API (HTTP 403, no GP error body)",
+          "Usually a corporate proxy, VPN or firewall between you and " +
+          "apis.sandbox.globalpay.com — not a credentials problem. Try another network.");
     } else {
-      bad(`Unexpected: ${error.message}`);
+      bad(`Unexpected: HTTP ${error.status ?? "?"} ${error.message}`);
     }
   }
 }
