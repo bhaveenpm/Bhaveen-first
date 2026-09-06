@@ -71,8 +71,10 @@ idempotency key" is a question worth being able to answer.
 
 **5. The credential-issuing funnel fails, and it fails at the worst point.**
 Creating a Unified Payments App in the developer portal returned
-`Internal Server Error` on submit — a 500, not a validation message. The form
-had been filled correctly; nothing the developer could change would fix it.
+`Internal Server Error` on submit — a 500, not a validation message. Reproduced
+on two attempts with different app names, different merchant names and
+different regions (Ireland, then United States), so it is not input validation
+and not a name collision. Nothing the developer could change would fix it.
 
 *So what:* everything else in this document is downstream of getting an
 `app_id`. This is step one of the funnel, it's the step with no workaround, and
