@@ -73,23 +73,31 @@ export class Links {
       throw new RangeError("usage_mode SINGLE requires usage_limit 1");
     }
 
+    // Shape verified against Global Payments' own MCP server
+    // (github.com/globalpayments/mcp-server, src/clients/client.ts). Three
+    // things that are easy to get wrong and are wrong in most reconstructions:
+    // `country` and `channel` belong INSIDE `transactions`, `usage_limit` is a
+    // number sent only for MULTIPLE, and `status` is not sent on create.
     const body = {
       account_name: accountName ?? (await this.client.accountName()),
       type: "PAYMENT",
       usage_mode: usageMode,
-      usage_limit: String(usageLimit),
       reference,
       name: name ?? reference,
       description,
       shippable: shippable ? "YES" : "NO",
       transactions: {
-        amount: toMinorUnits(amount, currency),
-        currency: String(currency).toUpperCase(),
         allowed_payment_methods: allowedPaymentMethods,
+        amount: toMinorUnits(amount, currency),
+        channel: this.client.config.channel,
+        currency: String(currency).toUpperCase(),
+        country: country ?? this.client.config.country,
       },
-      country: country ?? this.client.config.country,
-      status: LINK_STATUS.ACTIVE,
     };
+
+    if (usageMode === USAGE_MODE.MULTIPLE) {
+      body.usage_limit = Number(usageLimit);
+    }
 
     if (shippable && shippingAmount !== undefined) {
       body.shipping_amount = toMinorUnits(shippingAmount, currency);

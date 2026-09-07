@@ -164,15 +164,27 @@ developer and GP's most differentiated flow is that it isn't in their SDK.
 conversion rather than creating it, which is a harder sell internally and the
 reason gaps like this persist.
 
-**3. An agent-callable interface to the API.**
+**3. An agent-callable interface to the API.** — **and they have already started.**
 Increasingly, the thing integrating a payments API is a coding agent or an
 assistant acting for a merchant. That reader wants machine-readable capability
 descriptions, strict typing, and idempotency that's on by default — because an
 agent retries. GP's account-scoped, permission-carrying token is an unusually
 good primitive for scoping what an agent is allowed to do: you can mint a token
 that can create links and nothing else.
-*Objection:* speculative, and the compliance questions (who authorised this
-agent, what's the audit trail) are harder than the engineering.
+
+That was written as speculation. It isn't: `globalpayments/mcp-server` ships
+exactly this, requesting least-privilege tokens
+(`LNK_POST_Create, LNK_GET_List, LNK_GET_Single`) against a *separate* agent
+auth endpoint, `/ucp/mcp/accesstoken`. See `06-mcp-server.md`.
+
+So the question stops being "should you?" and becomes **how far, and with what
+guardrails**. Today the agent surface is three read/create tools. Transactions
+and refunds are the obvious next step and also the point where an agent acting
+wrongly costs real money. And since agent traffic is already distinguishable at
+the auth layer, the merchant-facing question follows naturally: can a merchant
+see which of their payments an agent initiated?
+*Objection:* the compliance questions — who authorised this agent, what's the
+audit trail — remain harder than the engineering.
 
 ## What I'd want to measure
 

@@ -37,22 +37,49 @@ From `globalpayments-samples/pay-by-link` (README, via raw.githubusercontent).
 - Sample supports EUR, USD, GBP.
 - Six language implementations of the same ~200-line flow.
 
+## Grade A2 -- RESOLVED against Global Payments' own MCP server
+
+`github.com/globalpayments/mcp-server` (public, TypeScript) is a second GP-authored
+client, and unlike the Node SDK it *does* call `/links`. Reading
+`src/clients/client.ts` and `src/utils/constants.ts` closes most of what was
+Grade C below.
+
+| Now confirmed | Detail |
+|---|---|
+| The create-link body nests under `transactions` | `transactions: { allowed_payment_methods, amount, channel, currency, country }` |
+| `country` and `channel` live INSIDE `transactions` | not at the top level, which is what this repo had wrong |
+| `usage_limit` is a NUMBER, and only sent for `MULTIPLE` | this repo sent a string, always |
+| `status` is NOT sent on create | this repo sent `status: "ACTIVE"` |
+| Auth body | `app_id`, `secret`, `grant_type`, `nonce`, plus optional `interval_to_expire` and `permissions` -- matches this repo exactly |
+| `X-GP-Version: 2021-03-22` | independently confirmed |
+| Account may be given as `account_id` OR `account_name` | this repo only uses `account_name` |
+
+Two further findings from that repo, neither of which is in any documentation:
+
+- **There is a separate MCP access-token endpoint**: `/ucp/mcp/accesstoken`, not
+  the standard `/ucp/accesstoken`. That is a deliberate, separate auth path for
+  agent clients.
+- **It requests least-privilege tokens by default**:
+  `["LNK_POST_Create", "LNK_GET_List", "LNK_GET_Single"]`, and the README tells
+  you to provision an app with only LNK permissions. This is GP doing exactly
+  what `02-product-teardown.md` argues their token model is good for.
+
+The code in this repo was corrected to match. See `06-mcp-server.md`.
+
 ## Grade C -- reconstructed, VERIFY BEFORE QUOTING
 
 I could not open the API reference, so these come from search-result summaries
 plus the SDK enums. They are my best reconstruction and are what this code
 implements, but check them against the real sandbox before you assert them.
 
-- **The exact nesting of the create-link body.** I put amount and currency under
-  `transactions: { amount, currency, allowed_payment_methods }`. Some sources
-  show `amount`/`currency` at the top level. If the sandbox 400s on
-  `MANDATORY_DATA_MISSING`, this is the first thing to flip -- it is a two-line
-  change in `src/resources/links.js`.
-- The idempotency header spelling (`x-gp-idempotency`).
+- ~~The exact nesting of the create-link body.~~ **RESOLVED** -- see Grade A2 above.
+- The idempotency header spelling (`x-gp-idempotency`). The MCP server does not
+  send an idempotency key at all, so it could not confirm this.
 - The webhook signing scheme. The mock uses a plain SHA-256 of the body as a
   placeholder; real GP's scheme is certainly different. Do not describe GP's
   webhook security from this repo.
-- `usage_limit` as a string rather than an integer.
+- ~~`usage_limit` as a string rather than an integer.~~ **RESOLVED** -- it is a
+  number, and only sent for `MULTIPLE`.
 - Whether a decline is HTTP 400 with `error_code: "DECLINED"` (what I built) or
   HTTP 200 with a declined status in the body. **This one genuinely matters** and
   is worth five minutes against the sandbox, because the two shapes demand

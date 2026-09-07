@@ -22,9 +22,13 @@ That's the one wrong assumption here that could cost real money.
 **Fix:** add a status check in `Transactions.#authorize` after the response
 returns. Tell me and I'll write it.
 
-### 2. Exact shape of the create-link body
-**Look in:** Pay by Link → API reference, the `POST /links` request schema.
-**This repo assumes:**
+### 2. ~~Exact shape of the create-link body~~ ✅ RESOLVED
+**Resolved** by reading `globalpayments/mcp-server` — GP's own client, which
+does call `/links`. The `transactions{}` nesting was right; `country` belonged
+inside it, not at the top level. Fixed. See `06-mcp-server.md`.
+
+~~**Look in:** Pay by Link → API reference, the `POST /links` request schema.
+**This repo assumed:**~~
 ```json
 { "transactions": { "amount": "2499", "currency": "GBP",
                     "allowed_payment_methods": ["CARD"] } }
@@ -42,10 +46,8 @@ first create call.
 behaviour matters more than the header name.
 **Fix:** one line in `src/client.js`.
 
-### 4. Is `usage_limit` a string or an integer?
-**Look in:** the `POST /links` schema.
-**This repo assumes:** string (`"1"`), matching how GP treats amounts.
-**Fix:** one line in `src/resources/links.js`.
+### 4. ~~Is `usage_limit` a string or an integer?~~ ✅ RESOLVED — a number, and only sent for MULTIPLE.
+Confirmed from `globalpayments/mcp-server`. Fixed.
 
 ### 5. Webhook authentication
 **Look in:** the webhooks / notifications page.
@@ -70,6 +72,12 @@ for, as `INVALID_REQUEST_DATA`. I believe the *behaviour* is real; I'm unsure of
 the exact `error_code`.
 **Why it matters:** it's the cleanest example of "the request is fine, the
 account provisioning isn't," which is the §10 argument in the teardown.
+
+### 8b. Does the MCP server's sandbox host bug still exist?
+**Look in:** `settings.ts` vs `client.ts` in `globalpayments/mcp-server`.
+With `ENV=SANDBOX` it mints a token on `apis-cert.globalpay.com` and then calls
+`/ucp/links` on `apis.sandbox.globalpay.com`. If your token works but link
+creation 401s, that's why. See `06-mcp-server.md`.
 
 ### 8. Does Pay by Link exist in the Node SDK now?
 **Look in:** the SDK / libraries page, and the changelog for `globalpayments-api`.

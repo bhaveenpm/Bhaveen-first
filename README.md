@@ -94,6 +94,7 @@ notes/                   what I actually learned -- start here
 | [`02-product-teardown.md`](notes/02-product-teardown.md) | The API as a product: users, gaps, what I'd build. |
 | [`03-interview-brief.md`](notes/03-interview-brief.md) | Talking points and questions. |
 | [`04-docs-checklist.md`](notes/04-docs-checklist.md) | Open items to confirm against the docs portal. |
+| [`06-mcp-server.md`](notes/06-mcp-server.md) | GP's own MCP server: what it corrected here, and a host bug in it. |
 
 ## Running it
 

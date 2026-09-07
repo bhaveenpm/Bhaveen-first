@@ -211,7 +211,7 @@ route("POST", /^\/ucp\/links$/, async (req, res, _m, body) => {
     return fail(res, 400, "INVALID_REQUEST_DATA",
       `Currency ${txn.currency} is not enabled on account ${body.account_name}. Enabled: ${[...SUPPORTED_CURRENCIES].join(", ")}`, "40007");
   }
-  if (body.usage_mode === "SINGLE" && String(body.usage_limit ?? "1") !== "1") {
+  if (body.usage_mode === "SINGLE" && body.usage_limit !== undefined && Number(body.usage_limit) !== 1) {
     return fail(res, 400, "INVALID_REQUEST_DATA", "usage_limit must be 1 when usage_mode is SINGLE", "40006");
   }
 
@@ -230,8 +230,14 @@ route("POST", /^\/ucp\/links$/, async (req, res, _m, body) => {
     shippable: body.shippable ?? "NO",
     shipping_amount: body.shipping_amount,
     expiration_date: body.expiration_date,
-    country: body.country,
-    transactions: { amount: txn.amount, currency: txn.currency, allowed_payment_methods: txn.allowed_payment_methods ?? ["CARD"] },
+    country: txn.country ?? body.country,
+    transactions: {
+      amount: txn.amount,
+      currency: txn.currency,
+      channel: txn.channel,
+      country: txn.country ?? body.country,
+      allowed_payment_methods: txn.allowed_payment_methods ?? ["CARD"],
+    },
     notifications: body.notifications,
     // The payer-facing hosted page. Real GP returns a pay.globalpay.com URL.
     // Built from the request's own host so the link is reachable at whatever
