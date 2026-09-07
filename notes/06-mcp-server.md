@@ -91,6 +91,11 @@ disagree — is cert the intended sandbox for MCP?"*
   the TypeScript project. So `cd mcp-server` is correct.
 - The Claude Desktop example uses `X://absolute//path//...`, a Windows path with
   doubled separators, with no macOS or Linux equivalent given.
+- `package.json` declares `"main": "./lib/src/index.js"`, but `tsconfig.json`
+  sets `rootDir: ./src` and `outDir: ./lib`, so the build actually emits
+  `lib/index.js`. Verified by building it. The README's path is the correct one
+  and the package manifest points at a file that does not exist — which would
+  break anyone consuming this as a published package rather than a clone.
 
 Small, but this is the first ten minutes of the only integration path GP offers
 for agents, which makes them expensive minutes.
