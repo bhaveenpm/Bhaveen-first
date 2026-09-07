@@ -94,6 +94,20 @@ step that gates it has no instrumentation a PM would see. I'd want the 500 rate
 on app creation on a dashboard, and I'd want to know how many accounts have an
 `app_id` but have never successfully minted a token.
 
+**Then it happened again, one step further in.** With working credentials and
+GP's own MCP server, `POST /links` returned **502, error code 50046**, twice.
+Authentication succeeded — the token was minted and accepted — so this is not a
+credentials or permissions failure; it is GP's own downstream returning an
+error to a well-formed request.
+
+Two GP-side 5xx failures on the only two steps a new developer must complete
+(create an app, create a link) stops being anecdote and starts being the
+finding. Note also what the error gives you: a numeric code and the word
+"downstream". No correlation id to quote at support, and nothing that tells the
+integrator whether to retry, wait, or give up — which is precisely the
+distinction §6 of `01-api-teardown.md` argues the error envelope exists to make.
+A 5xx is at least honestly retryable, and the client here treats it that way.
+
 **6. GP invests in samples over abstraction.**
 `globalpayments-samples/pay-by-link` implements the same ~200-line flow six
 times. That's a deliberate strategy: meet developers in their language rather
