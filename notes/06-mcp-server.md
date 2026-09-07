@@ -100,6 +100,32 @@ disagree — is cert the intended sandbox for MCP?"*
 Small, but this is the first ten minutes of the only integration path GP offers
 for agents, which makes them expensive minutes.
 
+## Dependency health, stated carefully
+
+A fresh `npm install` reports 20 advisories (2 critical, 11 high). Most of that
+is noise and it would be unfair to lead with the headline number: the two
+criticals (`handlebars`, `shell-quote`) are transitive **dev** dependencies,
+pulled in by eslint and jest, and never ship or run in the served process.
+
+The part that is fair to raise concerns the five **runtime** dependencies:
+`@modelcontextprotocol/sdk`, `axios`, `dotenv`, `yaml`, `zod`. Two of those
+carry high-severity advisories today:
+
+- **`axios`** — a long list including SSRF via `NO_PROXY` bypass, header
+  injection, and `Proxy-Authorization` credential leakage across redirects.
+- **`@modelcontextprotocol/sdk`** — cross-client data leak via shared
+  server/transport instance reuse, plus a ReDoS.
+
+The reason it is worth mentioning at all is the context, not the CVEs: **this
+process holds a merchant's payment API credentials**, and a credential-leak
+advisory in its HTTP client is squarely on point. `npm audit fix` resolves them.
+
+The PM question underneath is not "are there CVEs" — every repo has CVEs — but
+**who owns dependency currency for a published integration artefact, and on what
+cadence**. An MCP server is not a sample; it runs unattended on a merchant's
+machine holding live keys. That is a different support commitment from a code
+sample, and worth asking whether it is treated as one.
+
 ## Setup
 
 ```bash
