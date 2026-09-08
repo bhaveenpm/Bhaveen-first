@@ -1,0 +1,1096 @@
+{
+  "info": {
+    "name": "Global Payments GP API \u2014 explorer",
+    "description": "A hands-on collection for the Global Payments GP API (Unified Commerce Platform).\n\nSETUP: open the collection's Variables tab and set `app_id` and `app_key`. Nothing else.\n\nAuthentication is handled for you. GP uses a proof-of-possession handshake \u2014 you never send your app_key, you send a nonce and sha512(nonce + app_key). A collection-level pre-request script does that, caches the token, and auto-discovers your account name from the token's scope.\n\nRequests chain: create a link and `link_id` is saved; run a sale and `transaction_id` is saved. So you can run folders top to bottom.\n\nAmounts are MINOR UNITS as strings: \"2499\" is \u00a324.99. In JPY, \"2499\" is 2499 yen.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mints a GP access token automatically and caches it on the collection.",
+          "// GP auth is a proof-of-possession handshake: you never send app_key, you send",
+          "// a nonce and sha512(nonce + app_key). This does that for every request.",
+          "const url = pm.request.url.toString();",
+          "if (!url.includes('/accesstoken')) {",
+          "    const now = Math.floor(Date.now() / 1000);",
+          "    const expiresAt = Number(pm.collectionVariables.get('token_expires_at') || 0);",
+          "    const token = pm.collectionVariables.get('access_token');",
+          "",
+          "    // Reuse the cached token. Minting one per request is rate-limited and is",
+          "    // the classic way to turn a working integration into 429s.",
+          "    if (!token || now >= expiresAt - 60) {",
+          "        const CryptoJS = require('crypto-js');",
+          "        const nonce = new Date().toISOString();",
+          "        const appKey = pm.collectionVariables.get('app_key');",
+          "        const secret = CryptoJS.SHA512(nonce + appKey).toString(CryptoJS.enc.Hex).toLowerCase();",
+          "",
+          "        pm.sendRequest({",
+          "            url: pm.collectionVariables.get('base_url') + '/accesstoken',",
+          "            method: 'POST',",
+          "            header: {",
+          "                'Content-Type': 'application/json',",
+          "                'Accept': 'application/json',",
+          "                'X-GP-Version': pm.collectionVariables.get('gp_version')",
+          "            },",
+          "            body: { mode: 'raw', raw: JSON.stringify({",
+          "                app_id: pm.collectionVariables.get('app_id'),",
+          "                nonce: nonce,",
+          "                secret: secret,",
+          "                grant_type: 'client_credentials'",
+          "            })}",
+          "        }, function (err, res) {",
+          "            if (err) { console.error('Token request failed:', err); return; }",
+          "            if (res.code !== 200) { console.error('Token rejected:', res.code, res.text()); return; }",
+          "            const data = res.json();",
+          "            pm.collectionVariables.set('access_token', data.token);",
+          "            pm.collectionVariables.set('token_expires_at', String(now + (Number(data.seconds_to_expire) || 1800)));",
+          "            const accounts = (data.scope && data.scope.accounts) || [];",
+          "            const txn = accounts.find(function (a) { return String(a.id).indexOf('TRA_') === 0; });",
+          "            const tok = accounts.find(function (a) { return String(a.id).indexOf('TKA_') === 0; });",
+          "            if (txn) { pm.collectionVariables.set('account_name', txn.name); pm.collectionVariables.set('account_id', txn.id); }",
+          "            if (tok) { pm.collectionVariables.set('tokenization_account_name', tok.name); }",
+          "            console.log('Token minted. Merchant:', data.scope && data.scope.merchant_name, '| accounts:', accounts.map(function(a){return a.id}).join(', '));",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://apis.sandbox.globalpay.com/ucp",
+      "description": "sandbox US. EU: https://apis.sandbox.eu.globalpay.com/ucp"
+    },
+    {
+      "key": "app_id",
+      "value": "",
+      "description": "SET THIS"
+    },
+    {
+      "key": "app_key",
+      "value": "",
+      "description": "SET THIS \u2014 never commit it"
+    },
+    {
+      "key": "gp_version",
+      "value": "2021-03-22",
+      "description": "The API is versioned by header, not URL"
+    },
+    {
+      "key": "country",
+      "value": "GB"
+    },
+    {
+      "key": "channel",
+      "value": "CNP",
+      "description": "CNP = card not present. CP = terminal."
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "token_expires_at",
+      "value": "0"
+    },
+    {
+      "key": "account_name",
+      "value": ""
+    },
+    {
+      "key": "account_id",
+      "value": ""
+    },
+    {
+      "key": "tokenization_account_name",
+      "value": ""
+    },
+    {
+      "key": "link_id",
+      "value": ""
+    },
+    {
+      "key": "transaction_id",
+      "value": ""
+    },
+    {
+      "key": "payment_method_id",
+      "value": ""
+    },
+    {
+      "key": "_nonce",
+      "value": ""
+    },
+    {
+      "key": "_secret",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0 \u00b7 Auth",
+      "description": "Run this first to see the handshake. Everything else does it automatically.",
+      "item": [
+        {
+          "name": "Create access token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accesstoken",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accesstoken"
+              ]
+            },
+            "description": "The one call you cannot fake by hand: `secret` must be sha512(nonce + app_key).\n\nThe response `scope` lists the merchant and every account the token can reach \u2014 TRA_ transaction processing, TKA_ tokenisation, DIA_ disputes. That means the correct account_name is DISCOVERABLE at runtime; you never have to hardcode it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"app_id\": \"{{app_id}}\",\n  \"nonce\": \"{{_nonce}}\",\n  \"secret\": \"{{_secret}}\",\n  \"grant_type\": \"client_credentials\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Computes the handshake for THIS request so you can watch it happen.",
+                  "const CryptoJS = require('crypto-js');",
+                  "const nonce = new Date().toISOString();",
+                  "const appKey = pm.collectionVariables.get('app_key');",
+                  "pm.collectionVariables.set('_nonce', nonce);",
+                  "pm.collectionVariables.set('_secret', CryptoJS.SHA512(nonce + appKey).toString(CryptoJS.enc.Hex).toLowerCase());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.token) {",
+                  "    const now = Math.floor(Date.now() / 1000);",
+                  "    pm.collectionVariables.set('access_token', d.token);",
+                  "    pm.collectionVariables.set('token_expires_at', String(now + (Number(d.seconds_to_expire) || 1800)));",
+                  "    const accounts = (d.scope && d.scope.accounts) || [];",
+                  "    const txn = accounts.find(a => String(a.id).indexOf('TRA_') === 0);",
+                  "    const tok = accounts.find(a => String(a.id).indexOf('TKA_') === 0);",
+                  "    if (txn) { pm.collectionVariables.set('account_name', txn.name); pm.collectionVariables.set('account_id', txn.id); }",
+                  "    if (tok) pm.collectionVariables.set('tokenization_account_name', tok.name);",
+                  "    console.log('Merchant:', d.scope && d.scope.merchant_name);",
+                  "    console.log('Accounts:', accounts.map(a => a.id + ' = ' + a.name).join('\\n          '));",
+                  "    console.log('Token valid for', d.seconds_to_expire, 'seconds');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1 \u00b7 Pay by Link",
+      "description": "The social-commerce primitive. No merchant front end at all.",
+      "item": [
+        {
+          "name": "Create link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/links",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "links"
+              ]
+            },
+            "description": "NOTE the nesting: amount, currency, channel and country all live INSIDE `transactions`. Putting country at the top level is the most common mistake.\n\n`usage_limit` is a NUMBER and is only sent when usage_mode is MULTIPLE. Do not send `status` on create.\n\nTRY: change currency to JPY and watch 2499 become 2499 yen, not 24.99. Or set an unprovisioned currency and read the error.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_name\": \"{{account_name}}\",\n  \"type\": \"PAYMENT\",\n  \"usage_mode\": \"SINGLE\",\n  \"name\": \"Hand-poured candle\",\n  \"description\": \"Sold over an Instagram DM\",\n  \"reference\": \"IG-2291\",\n  \"shippable\": \"NO\",\n  \"transactions\": {\n    \"allowed_payment_methods\": [\n      \"CARD\"\n    ],\n    \"amount\": \"2499\",\n    \"channel\": \"{{channel}}\",\n    \"currency\": \"GBP\",\n    \"country\": \"{{country}}\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('link_id', d.id); console.log('link_id =', d.id, '| pay at:', d.url); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List links",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/links?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "links"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Reporting is paged, 1-based. Add &status=ACTIVE or &reference=IG-2291 to filter."
+          }
+        },
+        {
+          "name": "Get link",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/links/{{link_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "links",
+                "{{link_id}}"
+              ]
+            },
+            "description": "Uses the link_id saved by Create link. Check `status` and `usage_count`."
+          }
+        },
+        {
+          "name": "Deactivate link",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/links/{{link_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "links",
+                "{{link_id}}"
+              ]
+            },
+            "description": "Links are mutable while ACTIVE \u2014 you can reprice or kill one after sharing it. Which also means whoever holds the link sees whatever it says NOW.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reprice link",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/links/{{link_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "links",
+                "{{link_id}}"
+              ]
+            },
+            "description": "Repricing a link that is already in someone's inbox. Worth thinking about.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactions\": {\n    \"amount\": \"3150\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 \u00b7 Transactions",
+      "description": "Run Sale first \u2014 it saves transaction_id for the rest.",
+      "item": [
+        {
+          "name": "Sale (auth + capture)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transactions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transactions"
+              ]
+            },
+            "description": "capture_mode AUTO takes the money now. Test cards: 4263982640269299 (Visa, approves), 5425233424241200 (Mastercard, approves).\n\nTRY 4000120000001154 \u2014 a DECLINE. Note it returns HTTP 400 with error_code DECLINED. That is the issuer saying no, NOT a broken request \u2014 and it is the single most important distinction in this API.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_name\": \"{{account_name}}\",\n  \"channel\": \"{{channel}}\",\n  \"capture_mode\": \"AUTO\",\n  \"type\": \"SALE\",\n  \"amount\": \"1000\",\n  \"currency\": \"GBP\",\n  \"country\": \"{{country}}\",\n  \"reference\": \"SALE-001\",\n  \"payment_method\": {\n    \"entry_mode\": \"ECOM\",\n    \"card\": {\n      \"number\": \"4263982640269299\",\n      \"expiry_month\": \"12\",\n      \"expiry_year\": \"27\",\n      \"cvv\": \"123\",\n      \"cvv_indicator\": \"PRESENT\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('transaction_id', d.id); console.log('transaction_id =', d.id, '| status:', d.status); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Authorize only (capture later)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transactions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transactions"
+              ]
+            },
+            "description": "capture_mode LATER holds the funds without taking them. This is a BUSINESS decision \u2014 take money when you ship, not when they click \u2014 encoded as one enum.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_name\": \"{{account_name}}\",\n  \"channel\": \"{{channel}}\",\n  \"capture_mode\": \"LATER\",\n  \"type\": \"SALE\",\n  \"amount\": \"3000\",\n  \"currency\": \"GBP\",\n  \"country\": \"{{country}}\",\n  \"reference\": \"AUTH-001\",\n  \"payment_method\": {\n    \"entry_mode\": \"ECOM\",\n    \"card\": {\n      \"number\": \"4263982640269299\",\n      \"expiry_month\": \"12\",\n      \"expiry_year\": \"27\",\n      \"cvv\": \"123\",\n      \"cvv_indicator\": \"PRESENT\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('transaction_id', d.id); console.log('transaction_id =', d.id, '| status:', d.status); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Capture",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transactions/{{transaction_id}}/capture",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transactions",
+                "{{transaction_id}}",
+                "capture"
+              ]
+            },
+            "description": "Send a smaller amount for a partial capture. Only works on a PREAUTHORIZED transaction.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"3000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transactions/{{transaction_id}}/refund",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transactions",
+                "{{transaction_id}}",
+                "refund"
+              ]
+            },
+            "description": "Refund moves money back AFTER settlement \u2014 a second entry on the customer's statement.\n\nTRY refunding an uncaptured authorisation: it is refused. You must reverse instead.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"500\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reverse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transactions/{{transaction_id}}/reversal",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transactions",
+                "{{transaction_id}}",
+                "reversal"
+              ]
+            },
+            "description": "Reversal voids an authorisation that has not settled \u2014 the customer often never sees it. Cheaper than a refund and a better customer experience. Not a synonym."
+          }
+        },
+        {
+          "name": "Get transaction",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transactions/{{transaction_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transactions",
+                "{{transaction_id}}"
+              ]
+            },
+            "description": "Full detail including the action history."
+          }
+        },
+        {
+          "name": "Search transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/transactions?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Add &reference=SALE-001 to find your own order. `reference` is the ONLY join key between GP's records and yours."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 \u00b7 The 14 you haven't touched",
+      "description": "You have used 3 of GP's 17 resource families. These are the rest. Most are read-only, so they are safe to poke.",
+      "item": [
+        {
+          "name": "Actions \u2014 the audit log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/actions?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "\u2605 START HERE. Every API action, queryable: what was called, by which app, when, and the outcome.\n\nThis is how you answer 'which of my payments did an agent initiate?' \u2014 increasingly the question that matters."
+          }
+        },
+        {
+          "name": "Accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/accounts?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "accounts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "What your merchant is actually provisioned for. A great deal of GP behaviour is determined here rather than by what you send."
+          }
+        },
+        {
+          "name": "Tokenise a card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/payment-methods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payment-methods"
+              ]
+            },
+            "description": "\u2605 Store a card once, charge it again later without the buyer re-entering it.\n\nNote it uses the TOKENISATION account (TKA_), not transaction processing. Then charge it with payment_method: { id: \"{{payment_method_id}}\" } instead of a card object.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_name\": \"{{tokenization_account_name}}\",\n  \"reference\": \"CUST-001\",\n  \"usage_mode\": \"MULTIPLE\",\n  \"name\": \"Repeat buyer card\",\n  \"card\": {\n    \"number\": \"4263982640269299\",\n    \"expiry_month\": \"12\",\n    \"expiry_year\": \"27\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('payment_method_id', d.id); console.log('payment_method_id =', d.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify a card (no charge)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/verifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "verifications"
+              ]
+            },
+            "description": "Zero-auth: is this card real and usable, without taking money. Used at signup for subscriptions, and to check a saved card still works before a renewal.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_name\": \"{{account_name}}\",\n  \"channel\": \"{{channel}}\",\n  \"currency\": \"GBP\",\n  \"country\": \"{{country}}\",\n  \"reference\": \"VERIFY-001\",\n  \"payment_method\": {\n    \"entry_mode\": \"ECOM\",\n    \"card\": {\n      \"number\": \"4263982640269299\",\n      \"expiry_month\": \"12\",\n      \"expiry_year\": \"27\",\n      \"cvv\": \"123\",\n      \"cvv_indicator\": \"PRESENT\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Disputes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/disputes?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "disputes"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Chargebacks. The expensive end of payments, and the part merchants care most about."
+          }
+        },
+        {
+          "name": "Settled transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/settlement/transactions?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settlement",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "\u2605 What actually SETTLED, versus what was merely authorised. These are different numbers and the gap between them is where reconciliation lives."
+          }
+        },
+        {
+          "name": "Deposits (payouts)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/settlement/deposits?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settlement",
+                "deposits"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "The money landing in the merchant's bank account. The number a business owner actually looks at."
+          }
+        },
+        {
+          "name": "Merchants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/merchants?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "merchants"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "\u2605 Platform / ISV territory: onboard sub-merchants programmatically. The largest under-marketed capability in this API. May 403 unless your app is provisioned for merchant management \u2014 which is itself the point."
+          }
+        },
+        {
+          "name": "Devices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/devices?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "devices"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Card-present terminals."
+          }
+        },
+        {
+          "name": "Currency conversion (DCC)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-GP-Version",
+                "value": "{{gp_version}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/currency-conversions?page=1&page_size=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "currency-conversions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Dynamic Currency Conversion. Availability is set by your acquirer and conversion processor, not by the API \u2014 not available in the US or Canada."
+          }
+        }
+      ]
+    }
+  ]
+}
