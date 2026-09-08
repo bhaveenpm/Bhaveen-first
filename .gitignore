@@ -4,3 +4,7 @@ node_modules/
 *.log
 .DS_Store
 .orders.json
+
+# Postman collections with credentials baked in — never commit these
+*with-keys*.json
+*keys-embedded*.json
