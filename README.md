@@ -11,7 +11,7 @@ Built to learn the API properly rather than read about it.
 npm run ui        # a clickable web UI at http://127.0.0.1:3000 — start here
 npm run doctor    # checks whether you're set up, and says what to fix
 npm run demo      # the whole Pay by Link story, end to end, offline, ~2s
-npm test          # 38 tests, no network needed
+npm test          # 96 tests (GP + Stripe), no network needed
 ```
 
 **No credentials yet?** `npm run demo` and `npm test` work offline, right now.
@@ -81,9 +81,95 @@ ui/server.js             local web UI: proxies to GP, streams the wire to the pa
 ui/index.html            the page itself, no build step, no framework
 scripts/demo.js          narrated end-to-end walkthrough
 scripts/doctor.js        preflight: what's set up, what's missing, how to fix it
-test/                    38 tests, all against the emulator
+test/                    tests: the GP suite against the emulator, plus
+                         the Stripe suite against a stub transport
 notes/                   what I actually learned -- start here
 ```
+
+## Stripe
+
+A second, separate integration lives in `stripe/` — Billing, Connect, Payments,
+Invoicing and Tax — built the same way as the GP side: opinionated, commented
+where the API surprises you, and runnable without credentials.
+
+```bash
+npm run stripe:doctor     # what's configured, what's missing, how to fix it
+npm run stripe:demo       # both money flows end to end, offline, no credentials
+npm run test:stripe       # 48 tests, no network needed
+```
+
+**Start with [`notes/07-stripe-integration-plan.md`](notes/07-stripe-integration-plan.md).**
+It is the plan the code implements, and it explains the decisions that are hard
+to reverse later.
+
+### The one idea worth taking away
+
+Those five products describe **two different money flows with two different
+merchants**, and most expensive mistakes come from modelling them as one:
+
+| | Buyer pays seller | Seller pays you |
+|---|---|---|
+| merchant of record | the connected account | you |
+| revenue | not yours (you keep a fee) | yours |
+| products | Connect, Payments, Tax | Billing, Invoicing, Tax |
+| code | `connect.js` `payments.js` `tax.js` | `billing.js` `invoicing.js` |
+
+Keep two `Customer` namespaces. Reuse one and you will eventually bill a seller
+with a buyer's card.
+
+### Things this repo encodes because they are verified, not remembered
+
+Every parameter shape was checked against the installed SDK's own type
+definitions (`stripe@22.6.2`, API `2026-08-26.dahlia`) rather than recalled:
+
+- **PaymentIntents have no `automatic_tax`.** It exists on Invoices,
+  Subscriptions and Checkout Sessions — not on raw PaymentIntents. So a
+  marketplace charge must drive Stripe Tax by hand: calculate → charge →
+  *record after success*. Skipping the record step leaves you having collected
+  tax you cannot file, with empty Tax reports.
+- **`invoiceItems.create` takes `pricing: { price }`, not `price`.** The bare
+  `price` field is gone. Most tutorials online still show it.
+- **Confirm subscriptions via `latest_invoice.confirmation_secret`**, not
+  `latest_invoice.payment_intent`. The latter is the pre-2025 pattern.
+- **Connected accounts are shaped by `controller` properties**, not
+  `type: 'express'`. And `controller.losses.payments: 'application'` means
+  *you* eat the chargebacks — a business decision, not a default.
+- **`on_behalf_of` is not decoration.** It sets the merchant of record, which
+  decides the statement descriptor, the acquiring country, and whose tax
+  registrations Stripe Tax reads. Setting `transfer_data.destination` without it
+  is legal and quietly taxes the wrong entity.
+- **Stripe Tax computes zero tax where you have no registration** — silently.
+  It looks exactly like a correctly untaxed sale. `stripe:doctor` warns you.
+- **Webhook signatures are over the raw bytes.** A global JSON body parser
+  destroys your ability to verify, which is the most common webhook bug;
+  `verifyEvent` refuses a parsed object with an explanation rather than a
+  confusing signature error.
+
+### Layout
+
+```
+stripe/
+  config.js      key parsing (test vs live vs restricted), pinned API version
+  client.js      SDK setup, idempotency keys, basis-point fee arithmetic
+  errors.js      decline vs. your-bug vs. transient -- only one is retryable
+  connect.js     controller properties, onboarding links, capability gating
+  payments.js    destination charges, application fees, transfer-reversing refunds
+  tax.js         the calculate -> charge -> record dance, and its reversal
+  billing.js     plans, SCA-safe subscriptions, portal, usage meters
+  invoicing.js   items -> invoice -> finalize -> send, in that order
+  webhooks.js    signature verification, idempotent dispatch, Connect routing
+  doctor.js      preflight
+  demo.js        both flows, offline
+```
+
+### Status
+
+The code is unverified against live Stripe: this repo was built in an
+environment whose egress policy blocks `api.stripe.com`, so nothing here has
+made a real API call. Parameter shapes are verified against the SDK's generated
+types; sequencing and logic are covered by tests against a stub transport. Run
+`npm run stripe:doctor` from a machine that can reach Stripe to confirm
+end to end.
 
 ## Notes (the point of the repo)
 
