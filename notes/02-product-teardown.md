@@ -100,6 +100,21 @@ Authentication succeeded — the token was minted and accepted — so this is no
 credentials or permissions failure; it is GP's own downstream returning an
 error to a well-formed request.
 
+**A week later it was still failing.** The same call, the same
+`SYSTEM_ERROR_DOWNSTREAM` / 50046, on 14 September — seven days after the first
+attempt on the 7th. Meanwhile the *read* path was healthy throughout:
+`GET /links` returned normally against merchant `MER_bc5469…` / account
+`TRA_7891ea…` immediately after each failed write. So credentials, permissions
+and connectivity are all fine, and the failure is isolated to link creation.
+
+That timeline matters because it eliminates the comfortable explanation. A
+transient downstream wobble does not persist for seven days, and it does not
+also take out app creation in the developer portal a day earlier — a different
+subsystem entirely. What is left is either an account that was never provisioned
+to create links, or a sandbox write path that has been broken for a week. Both
+are worse than an outage, and the API cannot tell you which, because 50046 is a
+catch-all with no correlation id.
+
 Two GP-side 5xx failures on the only two steps a new developer must complete
 (create an app, create a link) stops being anecdote and starts being the
 finding. Note also what the error gives you: a numeric code and the word
