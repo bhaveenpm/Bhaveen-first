@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which Halden?</title>
+<link rel="stylesheet" href="../../assets/fonts.css">
+<link rel="stylesheet" href="a.css">
+<link rel="stylesheet" href="directions.css">
+</head>
+<body>
+<!--BODY-->
+<main class="cv">
+  <header class="cv-intro">
+    <span class="cv-mono">Halden CRM · two directions · pick one</span>
+    <h1>Same engine, same day. Two ways to face it.</h1>
+    <p>Both directions run on the same rules and the same seed data: a six-person design studio, five things due today.
+       What changes is who the screen is built for. Every board is live — clear actions, open people, log notes —
+       and each flips to its empty state.</p>
+    <div class="cv-choices">
+      <a class="cv-choice a" href="#dir-a">
+        <header><span class="cv-letter">A</span><h2>The Spine</h2></header>
+        <p><b>Optimizes for</b> the person who checks in once or twice a day: one calm list, read top to bottom, where the shape of each mark tells you why it's there and the day burns down as you clear it.</p>
+        <p><b>Trade-off:</b> at thirty-plus actions it's a long scroll with no fast lane — it asks you to read, not to process.</p>
+        <span class="cv-mono">See A ↓</span>
+      </a>
+      <a class="cv-choice b" href="#dir-b">
+        <header><span class="cv-letter">B</span><h2>Triage desk</h2></header>
+        <p><b>Optimizes for</b> the person who owns the relationships and clears the list fast: a dense queue beside a detail pane, driven by J / K / E, built to be emptied in minutes.</p>
+        <p><b>Trade-off:</b> it rewards daily habit and punishes the occasional user; to a first-timer on a three-person team it reads as a tool for someone else.</p>
+        <span class="cv-mono">See B ↓</span>
+      </a>
+    </div>
+  </header>
+
+  <section class="cv-dir" id="dir-a">
+    <div class="cv-dir-head"><span class="cv-letter a">A</span><h2>The Spine</h2><span class="cv-mono">sage paper · Petrona · Archivo</span></div>
+
+    <figure class="board">
+      <figcaption>
+        <span class="cv-mono">A · Today · desktop</span>
+        <span class="hint">Mark something done and watch the rule fill. Click a name to open them below.</span>
+        <div class="seg" data-board="a-today"><button data-empty="0">Five due</button><button data-empty="1">First run</button></div>
+      </figcaption>
+      <div class="frame A" data-board="a-today" style="--h:800px"><div class="screen"></div></div>
+    </figure>
+
+    <figure class="board">
+      <figcaption>
+        <span class="cv-mono">A · Relationship · desktop</span>
+        <span class="hint">Log a note — the cadence strip and silence count update.</span>
+        <div class="seg" data-board="a-rel"><button data-empty="0">With history</button><button data-empty="1">New contact</button></div>
+      </figcaption>
+      <div class="frame A" data-board="a-rel" style="--h:780px"><div class="screen"></div></div>
+    </figure>
+  </section>
+
+  <section class="cv-dir" id="dir-b">
+    <div class="cv-dir-head"><span class="cv-letter b">B</span><h2>Triage desk</h2><span class="cv-mono">ink night · Barlow Semi Condensed · JetBrains Mono</span></div>
+
+    <figure class="board">
+      <figcaption>
+        <span class="cv-mono">B · Today · desktop</span>
+        <span class="hint">Click the board, then J / K to move, E to clear, S for tomorrow, Enter to open.</span>
+        <div class="seg" data-board="b-today"><button data-empty="0">Five due</button><button data-empty="1">First run</button></div>
+      </figcaption>
+      <div class="frame B" data-board="b-today" tabindex="0" aria-label="Direction B, Today. Use J and K to move, E to clear." style="--h:620px"><div class="screen"></div></div>
+    </figure>
+
+    <figure class="board">
+      <figcaption>
+        <span class="cv-mono">B · Relationship · desktop</span>
+        <span class="hint">Press L to jump to the log. Tick a promise off.</span>
+        <div class="seg" data-board="b-rel"><button data-empty="0">With history</button><button data-empty="1">New contact</button></div>
+      </figcaption>
+      <div class="frame B" data-board="b-rel" tabindex="0" aria-label="Direction B, Relationship" style="--h:700px"><div class="screen"></div></div>
+    </figure>
+  </section>
+
+  <footer class="cv-foot">
+    <span class="cv-mono">Your call</span>
+    <p>Reply with <b>A</b> or <b>B</b>. I'll then build the kit in <code>design/</code> — tokens, type scale, the reason marks,
+       buttons, rows, panels, empty states — rebuild all four app screens from it, commit, and stop again.</p>
+  </footer>
+</main>
+<!--/BODY-->
+<script src="../../assets/data.js"></script>
+<script src="../../assets/actions.js"></script>
+<script src="directions.js"></script>
+</body>
+</html>

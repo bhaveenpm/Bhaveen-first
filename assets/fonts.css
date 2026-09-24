@@ -5,3 +5,8 @@
 @font-face{font-family:'Petrona';font-style:normal;font-weight:300 600;font-display:swap;src:url('fonts/petrona-normal-300_600.woff2') format('woff2');}
 @font-face{font-family:'Archivo';font-style:normal;font-weight:400 700;font-display:swap;src:url('fonts/archivo-normal-400_700.woff2') format('woff2');}
 @font-face{font-family:'Spline Sans Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url('fonts/splinemono-normal-400_500.woff2') format('woff2');}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/barlowsc-normal-400.woff2') format('woff2');}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/barlowsc-normal-500.woff2') format('woff2');}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/barlowsc-normal-600.woff2') format('woff2');}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/barlowsc-normal-700.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400 600;font-display:swap;src:url('fonts/jbmono-normal-400_600.woff2') format('woff2');}

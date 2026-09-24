@@ -38,6 +38,9 @@ function relDay(iso) {
 function weekdayOf(iso) {
   return d(iso).toLocaleDateString("en-GB", { weekday: "long", timeZone: "UTC" });
 }
+function sentence(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1) + ".";
+}
 function money(v) {
   return "€" + v.toLocaleString("en-GB");
 }
@@ -70,8 +73,8 @@ function derive(scope /* "mine" | "studio" */, meId, opts) {
       ownerId: c.ownerId,
       headline: c.what,
       why: late > 0
-        ? { bold: "Due " + relDay(c.dueOn) + ".", tail: c.promiseNote + "." }
-        : { bold: "Due today.", tail: c.promiseNote + "." },
+        ? { bold: "Due " + relDay(c.dueOn) + ".", tail: sentence(c.promiseNote) }
+        : { bold: "Due today.", tail: sentence(c.promiseNote) },
       verb: c.what.startsWith("Send") ? "Mark sent" : c.what.startsWith("Answer") ? "Mark answered" : "Mark done",
       commitmentId: c.id,
     });
