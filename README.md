@@ -63,21 +63,33 @@ Two rules keep the list honest:
 
 ## The design
 
-**The spine.** A single rule runs down the left of the day. Each action pins to it with a
-mark whose *shape* is the reason it surfaced — filled dot for a promise you made, ring for
-a reply you're waiting on, gold diamond for a meeting today, fading bar for a relationship
-going quiet, triangle for a renewal. The rule fills gold behind the work you've cleared, so
-the day burns down in front of you and ends on a single terminus dot.
+Two directions were explored side by side in `design/directions/` (open
+`design/directions/index.html`). **Direction B, Triage desk** was chosen, and the app
+is built on it.
 
-The same shape language repeats in the relationship timeline (filled = you reached out,
-ring = they did) and in the contact-cadence strip, where silence is drawn as the gaps
-between bars rather than described in a number.
+The design system lives in `design/system/` and is also published as a browsable
+reference with live component previews:
 
-- **Palette** — sage-grey paper `#E8EAE3`, green-black ink `#131A16`, gold `#C9922A` for
-  what's lit, indigo `#2E2FA6` for actions, rust `#A33417` for late, used sparingly.
-- **Type** — Petrona for display, Archivo for interface, Spline Sans Mono for data and
-  labels. Bundled under the SIL Open Font License.
-- Responsive to 390px, visible keyboard focus, `prefers-reduced-motion` respected.
+- `tokens.json` — the only place a value is written: 14 colours in one Night theme,
+  10 type styles, spacing, radius and the desk's frame sizes. Every text colour
+  passes 4.5:1 on every surface it sits on.
+- `tokens.css` — generated from `tokens.json` by `python3 design/system/build.py`.
+- `components/` — 18 components (`bundle.js` as React 18 on `window.Halden`,
+  `bundle.css`, `index.d.ts`), each with a usage guide and a live preview.
+- `README.md` — the brand book: voice, the reason marks, colour, type, keys.
+- `fonts/` — Barlow Semi Condensed and JetBrains Mono (SIL Open Font License).
+
+The app itself (`assets/app.js`) emits the same `hd-*` markup as the React
+components, so the prototype still needs no build step. `assets/app.css` holds
+layout only.
+
+**The signature** is the reason mark: every item carries one of five shapes that say
+why it is on your day — a dot for a promise you made, a ring for a reply you are
+waiting on, a gold diamond for a meeting today, a fading bar for silence, a triangle
+for a renewal. Lateness is the only thing colour adds.
+
+**Keys:** J / K move, E clears, S sends to tomorrow, Enter opens the person, U
+undoes, L jumps to the log, Esc goes back to the queue.
 
 ## The simulated sign-in
 
@@ -90,12 +102,13 @@ password, and never collects a credential** — the two accounts are hard-coded 
 ## Files
 
 ```
-index.html            shell
-assets/data.js        seeded team, accounts, people, deals, touches, promises
-assets/actions.js     the derivation engine and deal health
-assets/app.js         views, router, simulated auth
-assets/styles.css     design tokens and all styling
-assets/fonts/         bundled woff2 (OFL 1.1)
+index.html              shell
+assets/data.js          seeded team, accounts, people, deals, touches, promises
+assets/actions.js       the derivation engine and deal health
+assets/app.js           views, router, keys, simulated auth
+assets/app.css          layout only
+design/system/          the design system (tokens, components, brand book, fonts)
+design/directions/      the two-direction comparison that led to it
 ```
 
 ## Prototype limits

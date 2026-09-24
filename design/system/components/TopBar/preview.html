@@ -1,0 +1,16 @@
+<!-- @dsCard group="Frame" height=84 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>TopBar — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { width: 900 } },
+  h(H.TopBar, { nav: [{ label: 'Today', href: '#today', current: true, count: 4 }, { label: 'Deals', href: '#deals' }, { label: 'People', href: '#people' }],
+    where: 'Thursday 27 Aug', me: { name: 'Priya Raman', initials: 'PR' } },
+    h(H.Segmented, { label: 'Whose queue', value: 'mine', options: [{ value: 'mine', label: 'Mine' }, { value: 'studio', label: 'Studio' }] }),
+    h('span', { className: 'hd-counts' }, h('span', { className: 'is-late' }, '2 late'), h('span', null, h('b', null, '5'), ' open')))));
+</script>
+</body>
+</html>

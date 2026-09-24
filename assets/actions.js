@@ -209,7 +209,7 @@ function dealHealth(deal) {
   const renewIn = deal.renewalOn ? daysFrom(TODAY, deal.renewalOn) : null;
 
   let flag = null;
-  if (owed) flag = plural(daysFrom(owed.dueOn, TODAY), "day", "days") + " late — " + owed.what.toLowerCase();
+  if (owed) flag = plural(daysFrom(owed.dueOn, TODAY), "day", "days") + " late — " + owed.what.charAt(0).toLowerCase() + owed.what.slice(1);
   else if (renewIn !== null && renewIn >= 0 && renewIn <= 21) flag = "Renews " + relDay(deal.renewalOn);
   else if (deal.repliedSince === false && daysFrom(deal.sentOn, TODAY) >= 5) flag = "No reply in " + daysFrom(deal.sentOn, TODAY) + " days";
   else if (quiet > st.cadence) flag = plural(quiet, "day", "days") + " quiet";

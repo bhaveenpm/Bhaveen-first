@@ -1,0 +1,15 @@
+<!-- @dsCard group="Queue" height=124 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>GroupHeader — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { width: 420 } },
+  h(H.GroupHeader, { label: 'Late', count: 2, late: true }),
+  h(H.GroupHeader, { label: 'Today', count: 2 }),
+  h(H.GroupHeader, { label: 'Going quiet', count: 1 })));
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!-- @dsCard group="Signals" height=104 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Eyebrow — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { display: 'grid', gap: 12 } },
+  h(H.Eyebrow, { kind: 'promise', late: true }, 'Promise · Late'),
+  h(H.Eyebrow, { kind: 'meeting' }, 'Meeting today · Today'),
+  h(H.Eyebrow, { kind: 'quiet' }, 'Going quiet')));
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!-- @dsCard group="Actions" height=56 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Key — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+  ['J','K','E','S','U','↵'].map(function (k) { return h(H.Key, { key: k }, k); })));
+</script>
+</body>
+</html>

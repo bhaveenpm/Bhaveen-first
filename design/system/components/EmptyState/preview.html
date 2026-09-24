@@ -1,0 +1,19 @@
+<!-- @dsCard group="Frame" height=330 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>EmptyState — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { width: 560 } },
+  h(H.EmptyState, { title: 'What lands in this queue', rules: [
+    { kind: 'promise', title: 'A promise', text: 'you write in a note, like I will send it Monday' },
+    { kind: 'meeting', title: 'A meeting', text: 'on your calendar with someone you know' },
+    { kind: 'reply', title: 'A missing reply', text: 'you sent it, five days pass, nothing back' },
+    { kind: 'quiet', title: 'A quiet deal', text: 'silent longer than its stage allows' },
+    { kind: 'renewal', title: 'A renewal', text: 'inside 21 days' }
+  ], actions: [h(H.KeyButton, { key: 'i', keyLabel: 'I', primary: true }, 'Import Google contacts'), h(H.KeyButton, { key: 'c', keyLabel: 'C' }, 'Connect calendar')] })));
+</script>
+</body>
+</html>

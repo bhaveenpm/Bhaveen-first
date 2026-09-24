@@ -1,0 +1,64 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Halden</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--ground); color:var(--ink); font-family:var(--font-ui); overflow:hidden; }
+  .cover { position:relative; height:288px; overflow:hidden; }
+  .art { position:absolute; top:0; left:480px; width:480px; height:288px; overflow:hidden; }
+  .art svg { display:block; width:480px; height:288px; }
+  .sel { fill:var(--select); }
+  .ink { fill:var(--ink); }
+  .mid { fill:var(--line-strong); }
+  .cut { fill:var(--ground); }
+  .gold { fill:var(--meeting); }
+  .late { fill:var(--late); }
+  .ring { fill:none; stroke:var(--ink); stroke-width:2; }
+  .blk { rx:var(--radius-md); }
+  .bar { rx:var(--radius-sm); }
+  .words { position:absolute; left:var(--space-6); bottom:var(--space-6); max-width:440px; }
+  .name { margin:0; font-size:112px; line-height:.92; font-weight:600; letter-spacing:-.01em; color:var(--ink); }
+  .tag { margin:var(--space-2) 0 0 4px; font-size:14px; line-height:20px; color:var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      select 136x248 bled off the top (the one accent, largest) · line-strong 288x200 bled off the right (the desk's pane) · ink 64x64 (the primary text) · meeting one diamond, late one dot and one age bar (signals stay small) · about a third of 960x288
+  arrangement one tall select slab with the pane beside it, bottoms on one line space-6 above the edge, space-4 gutters
+  pattern     dense UI, from "a queue of what needs you today, and why": five queue rows cut into the pane at a space-8 pitch, each a reason mark (dot, ring, diamond, bar, late dot) and a ground-coloured task bar; the first row carries the select edge
+  scales      sides in space-2 multiples; gutters space-4; row pitch space-8; corners radius-md, task bars radius-sm
+-->
+<rect class="sel blk" x="16" y="-16" width="136" height="280" rx="3"/>
+<rect class="ink blk" x="168" y="200" width="64" height="64" rx="3"/>
+<rect class="mid blk" x="248" y="64" width="248" height="200" rx="3"/>
+<rect class="sel" x="248" y="84" width="4" height="24"/>
+<circle class="ink" cx="272" cy="96" r="5"/>
+<rect class="cut bar" x="288" y="92" width="120" height="8" rx="2"/>
+<rect class="cut bar" x="432" y="92" width="24" height="8" rx="2"/>
+<circle class="ring" cx="272" cy="128" r="4.5"/>
+<rect class="cut bar" x="288" y="124" width="96" height="8" rx="2"/>
+<rect class="cut bar" x="440" y="124" width="16" height="8" rx="2"/>
+<rect class="gold" x="266" y="154" width="12" height="12" transform="rotate(45 272 160)"/>
+<rect class="cut bar" x="288" y="156" width="136" height="8" rx="2"/>
+<rect class="cut bar" x="432" y="156" width="24" height="8" rx="2"/>
+<rect class="ink bar" x="264" y="190" width="16" height="4" rx="2"/>
+<rect class="cut bar" x="288" y="188" width="80" height="8" rx="2"/>
+<rect class="cut bar" x="440" y="188" width="16" height="8" rx="2"/>
+<circle class="late" cx="272" cy="224" r="5"/>
+<rect class="cut bar" x="288" y="220" width="112" height="8" rx="2"/>
+<rect class="late bar" x="424" y="220" width="32" height="8" rx="2"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">Halden</h1>
+<p class="tag">What needs you today, and why.</p>
+</div>
+</div>
+</body>
+</html>

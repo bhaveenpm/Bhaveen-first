@@ -1,0 +1,25 @@
+<!-- @dsCard group="Queue" height=260 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>QueueRow — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+var rows = [
+  { kind: 'promise', late: true, who: 'Nadia O.', what: 'Send the revised scope doc', age: '3d late' },
+  { kind: 'promise', late: true, who: 'Elise V.', what: 'Answer the three IP redlines', age: '1d late' },
+  { kind: 'meeting', who: 'Rina S.', what: 'Grip study kickoff at 14:00', age: '14:00' },
+  { kind: 'reply', who: 'Marcus F.', what: 'Chase the proposal', age: '9d' },
+  { kind: 'quiet', who: 'Jonah B.', what: 'Restart it or close it out', age: '34d' }
+];
+function Demo() {
+  var s = React.useState(0);
+  return h('div', { role: 'listbox', 'aria-label': 'Queue', style: { width: 420 } },
+    rows.map(function (r, i) { return h(H.QueueRow, Object.assign({ key: i, selected: i === s[0], onSelect: function () { s[1](i); } }, r)); }),
+    h(H.QueueRow, { kind: 'reply', waiting: true, who: 'Rina S.', what: 'NDA out for countersignature', age: '3d' }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

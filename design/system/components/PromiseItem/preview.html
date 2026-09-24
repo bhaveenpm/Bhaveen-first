@@ -1,0 +1,19 @@
+<!-- @dsCard group="Controls" height=120 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>PromiseItem — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+function Demo() {
+  var a = React.useState(false), b = React.useState(true);
+  return h('div', { style: { display: 'grid', gap: 10, width: 420 } },
+    h(H.PromiseItem, { what: 'Send the revised scope doc', due: '3 days ago', late: true, done: a[0], onToggle: function () { a[1](!a[0]); } }),
+    h(H.PromiseItem, { what: 'Cost the sealed housing route', due: '13 days ago', done: b[0], onToggle: function () { b[1](!b[0]); } }),
+    h(H.PromiseItem, { what: 'Introduce Marcus to Ade on tolerances', due: 'in 7 days' }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

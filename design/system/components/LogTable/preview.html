@@ -1,0 +1,17 @@
+<!-- @dsCard group="Detail" height=200 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>LogTable — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { width: 640 } },
+  h(H.LogTable, { entries: [
+    { date: '22 Aug', type: 'call', you: true, note: 'Walked Nadia through the two housing routes. She wants the sealed one costed.' },
+    { date: '14 Aug', type: 'email', you: true, note: 'Sent v1 proposal + timeline.' },
+    { date: '29 Jul', type: 'email', who: 'Nadia', note: 'Nadia asked whether we do IP67 validation in-house.' }
+  ] })));
+</script>
+</body>
+</html>

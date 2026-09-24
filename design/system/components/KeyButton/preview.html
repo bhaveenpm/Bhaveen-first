@@ -1,0 +1,15 @@
+<!-- @dsCard group="Actions" height=72 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>KeyButton — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+  h(H.KeyButton, { keyLabel: 'E', primary: true }, 'Mark sent'),
+  h(H.KeyButton, { keyLabel: 'S' }, 'Tomorrow'),
+  h(H.KeyButton, { keyLabel: '↵' }, 'Open Nadia')));
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!-- @dsCard group="Detail" height=164 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>FactStrip — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { display: 'grid', gap: 12, width: 640 } },
+  h(H.FactStrip, { fill: true, facts: [{ label: 'Deal', value: 'Field spectrometer housing' }, { label: 'Value', value: '€48,000', figure: true }, { label: 'Stage', value: 'Proposal · 16d' }, { label: 'Owner', value: 'Priya' }] }),
+  h('div', null, h(H.FactStrip, { facts: [{ label: 'Last touch', value: '5d ago' }, { label: 'You owe', value: '1 late', late: true }] }))));
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<!-- @dsCard group="Controls" height=64 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Segmented — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+function Demo() { var s = React.useState('mine'); return h(H.Segmented, { label: 'Whose queue', value: s[0], onChange: s[1], options: [{ value: 'mine', label: 'Mine' }, { value: 'studio', label: 'Studio' }] }); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

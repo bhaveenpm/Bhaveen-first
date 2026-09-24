@@ -1,5 +1,5 @@
 /* Direction A — "The Spine". Scoped copy of assets/styles.css so it can sit
-   beside Direction B on one comparison page. Generated from the app's stylesheet. */
+   beside Direction B on one comparison page. A frozen snapshot of the app's stylesheet from when Direction A was built. */
 .A{--paper:      #E8EAE3;
   --paper-warm: #EEF0E8;
   --card:       #FBFBF7;

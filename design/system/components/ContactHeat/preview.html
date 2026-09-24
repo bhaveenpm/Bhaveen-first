@@ -1,0 +1,15 @@
+<!-- @dsCard group="Detail" height=120 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ContactHeat — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+var cells = Array.apply(null, Array(60)).map(function () { return null; });
+[[19,'email'],[30,'call'],[45,'meeting'],[48,'email'],[56,'call']].forEach(function (c) { cells[c[0]] = c[1]; });
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { width: 640 } },
+  h(H.ContactHeat, { cells: cells, summary: 'Last contact 5 days ago, inside the 5-day cadence.' })));
+</script>
+</body>
+</html>

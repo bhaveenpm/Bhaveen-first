@@ -1,0 +1,52 @@
+/* GENERATED from tokens.json by build.py. Edit tokens.json, then rebuild. */
+
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:400;font-display:swap;src:url('fonts/barlowsc-normal-400.woff2') format('woff2');}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:500;font-display:swap;src:url('fonts/barlowsc-normal-500.woff2') format('woff2');}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:600;font-display:swap;src:url('fonts/barlowsc-normal-600.woff2') format('woff2');}
+@font-face{font-family:'Barlow Semi Condensed';font-style:normal;font-weight:700;font-display:swap;src:url('fonts/barlowsc-normal-700.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400 600;font-display:swap;src:url('fonts/jbmono-normal-400_600.woff2') format('woff2');}
+
+:root, [data-theme="night"] {
+  --ground: #141827;
+  --panel: #1a1f31;
+  --raise: #20263b;
+  --line: #2a3149;
+  --line-strong: #666f92;
+  --ink: #e7e9f3;
+  --ink-muted: #a3a9c1;
+  --ink-faint: #858dab;
+  --select: #a7b0ff;
+  --select-soft: #a7b0ff1a;
+  --on-select: #141827;
+  --late: #ff8a73;
+  --meeting: #f4c152;
+  --renewal: #7fd1ae;
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --topbar-height: 48px;
+  --footbar-height: 40px;
+  --queue-width: 420px;
+  --mark-size: 16px;
+  --font-ui: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+.type-title{font-family:var(--font-ui);font-size:30px;line-height:33px;font-weight:600;letter-spacing:-0.01em}
+.type-heading{font-family:var(--font-ui);font-size:20px;line-height:26px;font-weight:600}
+.type-body{font-family:var(--font-ui);font-size:16px;line-height:23px;font-weight:400}
+.type-row{font-family:var(--font-ui);font-size:16px;line-height:22px;font-weight:400}
+.type-small{font-family:var(--font-ui);font-size:15px;line-height:21px;font-weight:400}
+.type-brand{font-family:var(--font-ui);font-size:13px;line-height:16px;font-weight:700;letter-spacing:0.18em}
+.type-figure{font-family:var(--font-mono);font-size:15px;line-height:20px;font-weight:500}
+.type-meta{font-family:var(--font-mono);font-size:12px;line-height:16px;font-weight:400}
+.type-label{font-family:var(--font-mono);font-size:11px;line-height:14px;font-weight:400;letter-spacing:0.1em}
+.type-key{font-family:var(--font-mono);font-size:11px;line-height:11px;font-weight:500}

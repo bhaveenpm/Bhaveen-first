@@ -1,0 +1,16 @@
+<!-- @dsCard group="Signals" height=64 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ReasonMark — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+var kinds = ['promise','reply','meeting','quiet','renewal'];
+ReactDOM.createRoot(document.getElementById('root')).render(h(React.Fragment, null,
+  kinds.map(function (k) { return h('span', { key: k, className: 'hd-eyebrow' }, h(H.ReasonMark, { kind: k, label: '' }), k); }),
+  h('span', { className: 'hd-eyebrow is-late' }, h(H.ReasonMark, { kind: 'promise', late: true, label: '' }), 'promise, late'),
+  h('span', { className: 'hd-eyebrow is-late' }, h(H.ReasonMark, { kind: 'reply', late: true, label: '' }), 'reply, late')));
+</script>
+</body>
+</html>

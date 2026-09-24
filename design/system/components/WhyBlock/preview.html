@@ -1,0 +1,14 @@
+<!-- @dsCard group="Detail" height=170 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>WhyBlock — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { display: 'grid', gap: 12, width: 560 } },
+  h(H.WhyBlock, { late: true, reason: 'Due 3 days ago.', detail: 'You said Monday, on the call.' }),
+  h(H.WhyBlock, { reason: '60 minutes, Ovid, Leiden.', detail: 'Last spoke 3 days ago.', also: 'Bring the foam grip models to kickoff' })));
+</script>
+</body>
+</html>

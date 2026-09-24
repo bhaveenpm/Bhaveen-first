@@ -1,0 +1,13 @@
+<!-- @dsCard group="Frame" height=76 -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>KeyLegend — preview</title></head>
+<body>
+<div id="root" class="hd-demo"></div>
+<script>
+var H = window.Halden, h = React.createElement;
+ReactDOM.createRoot(document.getElementById('root')).render(h('div', { style: { width: 820 } },
+  h(H.KeyLegend, { done: 2, total: 5, keys: [{ key: ['J','K'], label: 'move' }, { key: 'E', label: 'done' }, { key: 'S', label: 'tomorrow' }, { key: '↵', label: 'open' }, { key: 'U', label: 'undo' }] })));
+</script>
+</body>
+</html>
